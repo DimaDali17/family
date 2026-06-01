@@ -11,14 +11,10 @@
   --gold:#c9a96e; --gold2:#e8cc94; --gold3:#a07840; --gold4:#6b4e25;
   --text:#f0e8d8; --text2:#a09080; --text3:#6a5a48;
   --border:rgba(201,169,110,0.18); --border2:rgba(201,169,110,0.4);
-  --female:rgba(180,110,140,0.18); --female-b:rgba(180,110,140,0.45);
-  --male:rgba(80,130,190,0.15); --male-b:rgba(80,130,190,0.4);
   --card-w:154px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;}
-
-/* ── LOCK ── */
 #lock{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:22px;}
 .lock-icon{font-size:44px;color:var(--gold);animation:pulse 3s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
@@ -31,93 +27,61 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--text);min-he
 .lock-btn{width:272px;padding:13px;background:linear-gradient(135deg,var(--gold4),var(--gold3));border:none;border-radius:4px;color:var(--text);font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:opacity .2s;}
 .lock-btn:hover{opacity:.85;}
 .lock-err{font-size:12px;color:#c0604a;height:16px;letter-spacing:.04em;}
-
-/* ── APP ── */
 #app{display:none;width:100%;height:100vh;flex-direction:column;}
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
 .hdr-title{font-family:'Cormorant Garamond',serif;font-size:20px;letter-spacing:.1em;color:var(--gold2);}
 .hdr-sub{font-size:11px;color:var(--text2);letter-spacing:.15em;margin-top:1px;}
-.hdr-actions{display:flex;gap:8px;align-items:center;}
+.hdr-r{display:flex;gap:8px;align-items:center;}
 .btn{padding:7px 14px;border-radius:3px;font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;border:1px solid var(--border2);background:transparent;color:var(--gold);}
 .btn:hover{background:var(--bg3);border-color:var(--gold);}
-.btn.primary{background:var(--gold4);border-color:var(--gold4);color:var(--text);}
-.btn.primary:hover{background:var(--gold3);}
-.search-wrap{position:relative;}
-.search-wrap input{padding:7px 14px 7px 32px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Jost',sans-serif;font-size:12px;width:200px;outline:none;transition:border-color .2s,width .3s;}
-.search-wrap input:focus{border-color:var(--gold);width:240px;}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:14px;pointer-events:none;}
-
-/* ── CANVAS ── */
+.srch{position:relative;}
+.srch input{padding:7px 14px 7px 30px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Jost',sans-serif;font-size:12px;width:180px;outline:none;transition:border-color .2s,width .3s;}
+.srch input:focus{border-color:var(--gold);width:220px;}
+.srch-ic{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:13px;pointer-events:none;}
 .canvas-wrap{flex:1;overflow:hidden;position:relative;cursor:grab;}
 .canvas-wrap.grabbing{cursor:grabbing;}
 #canvas{position:absolute;transform-origin:0 0;}
 #svg-layer{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
-
-/* ── CARDS ── */
-.person-card{
-  position:absolute;width:var(--card-w);
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:8px;overflow:hidden;
-  cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;
-  user-select:none;
-}
+.person-card{position:absolute;width:var(--card-w);background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;user-select:none;}
 .person-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4);z-index:5;}
-.person-card.selected{border-color:var(--gold2);box-shadow:0 0 0 2px rgba(201,169,110,.3),0 8px 28px rgba(0,0,0,.5);z-index:20;}
-.person-card.highlight{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(232,204,148,.25);}
-.card-photo{width:100%;height:90px;object-fit:cover;display:block;background:var(--bg4);}
-.card-photo-placeholder{width:100%;height:90px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--text3);}
+.person-card.selected{border-color:var(--gold2);box-shadow:0 0 0 2px rgba(201,169,110,.3);z-index:20;}
+.person-card.dim{opacity:.2;}
+.card-photo{width:100%;height:88px;object-fit:cover;display:block;background:var(--bg4);}
+.card-ph{width:100%;height:88px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--text3);}
 .card-body{padding:8px 10px 9px;}
-.card-name{font-family:'Cormorant Garamond',serif;font-size:14px;line-height:1.25;color:var(--text);font-weight:600;}
-.card-maiden{font-size:10px;color:var(--gold3);letter-spacing:.04em;margin-top:1px;}
-.card-year{font-size:10px;color:var(--text2);margin-top:3px;letter-spacing:.04em;}
-
-/* ── PANEL ── */
-#panel{position:fixed;right:0;top:0;bottom:0;width:310px;background:var(--bg2);border-left:1px solid var(--border);padding:0;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:50;display:flex;flex-direction:column;}
+.card-name{font-family:'Cormorant Garamond',serif;font-size:13px;line-height:1.25;color:var(--text);font-weight:600;}
+.card-sub{font-size:10px;color:var(--gold3);letter-spacing:.03em;margin-top:1px;}
+.card-yr{font-size:10px;color:var(--text2);margin-top:3px;}
+#panel{position:fixed;right:0;top:0;bottom:0;width:300px;background:var(--bg2);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:50;display:flex;flex-direction:column;}
 #panel.open{transform:translateX(0);}
-.panel-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative;}
-.panel-close{position:absolute;right:14px;top:14px;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:2px;}
-.panel-close:hover{color:var(--text);}
-.panel-photo{width:100%;height:160px;object-fit:cover;border-radius:6px;margin-bottom:12px;background:var(--bg4);}
-.panel-photo-ph{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:var(--bg4);border-radius:6px;margin-bottom:12px;font-family:'Cormorant Garamond',serif;font-size:52px;color:var(--text3);}
-.panel-name{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold2);line-height:1.2;}
-.panel-maiden{font-size:12px;color:var(--gold3);margin-top:2px;letter-spacing:.04em;}
-.panel-meta{font-size:12px;color:var(--text2);margin-top:5px;letter-spacing:.04em;}
-.panel-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px;flex:1;}
-.field-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text2);margin-bottom:5px;display:block;}
-.field-val{font-size:14px;color:var(--text);line-height:1.5;}
-.kin-list{display:flex;flex-direction:column;gap:6px;}
-.kin-item{display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--bg3);border-radius:5px;border:1px solid var(--border);cursor:pointer;transition:border-color .2s;}
-.kin-item:hover{border-color:var(--gold);}
-.kin-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg4);}
-.kin-avatar-ph{width:32px;height:32px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--text3);flex-shrink:0;}
-.kin-info{min-width:0;}
-.kin-name{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.kin-role{font-size:10px;color:var(--text2);letter-spacing:.08em;}
-.divider{border:none;border-top:1px solid var(--border);}
-
-/* ── ZOOM ── */
-.zoom-ctrl{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;z-index:40;}
-.zoom-btn{padding:8px 14px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:15px;transition:all .15s;}
-.zoom-btn:hover{background:var(--bg3);color:var(--gold);}
-.zoom-lbl{padding:8px 10px;font-size:11px;color:var(--text2);min-width:50px;text-align:center;line-height:2.2;}
-
-/* ── LEGEND ── */
-.legend{position:fixed;bottom:20px;left:20px;font-size:11px;color:var(--text2);z-index:40;line-height:2;}
-.legend span{display:inline-block;width:22px;height:2px;vertical-align:middle;margin-right:5px;}
-
-/* ── LOADING ── */
-#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:500;}
-.loading-spinner{width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+.ph{padding:18px 18px 14px;border-bottom:1px solid var(--border);position:relative;}
+.ph-close{position:absolute;right:12px;top:12px;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;}
+.ph-close:hover{color:var(--text);}
+.ph-img{width:100%;height:150px;object-fit:cover;border-radius:6px;margin-bottom:10px;background:var(--bg4);}
+.ph-img-ph{width:100%;height:110px;display:flex;align-items:center;justify-content:center;background:var(--bg4);border-radius:6px;margin-bottom:10px;font-family:'Cormorant Garamond',serif;font-size:48px;color:var(--text3);}
+.ph-name{font-family:'Cormorant Garamond',serif;font-size:21px;color:var(--gold2);line-height:1.2;}
+.ph-sub{font-size:11px;color:var(--gold3);margin-top:2px;}
+.ph-meta{font-size:11px;color:var(--text2);margin-top:4px;}
+.pb{padding:14px 18px;display:flex;flex-direction:column;gap:12px;flex:1;}
+.lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;display:block;}
+.val{font-size:13px;color:var(--text);line-height:1.5;}
+.kin-list{display:flex;flex-direction:column;gap:5px;}
+.kin{display:flex;align-items:center;gap:9px;padding:6px 9px;background:var(--bg3);border-radius:5px;border:1px solid var(--border);cursor:pointer;transition:border-color .2s;}
+.kin:hover{border-color:var(--gold);}
+.kin-av{width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg4);}
+.kin-av-ph{width:30px;height:30px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--text3);flex-shrink:0;}
+.kin-name{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kin-role{font-size:10px;color:var(--text2);}
+.div{border:none;border-top:1px solid var(--border);}
+.zoom-c{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;z-index:40;}
+.zb{padding:7px 13px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:15px;transition:all .15s;}
+.zb:hover{background:var(--bg3);color:var(--gold);}
+.zl{padding:7px 10px;font-size:11px;color:var(--text2);min-width:48px;text-align:center;line-height:2.1;}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:500;}
+.spin{width:34px;height:34px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-txt{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--text2);}
-
-/* ── TOAST ── */
-#toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--gold2);padding:9px 22px;border-radius:4px;font-size:12px;letter-spacing:.1em;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;}
-
-/* ── SHEET HINT ── */
-.sheet-hint{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:8px 18px;border-radius:4px;font-size:12px;letter-spacing:.06em;z-index:60;text-align:center;display:none;}
-.sheet-hint a{color:var(--gold);text-decoration:none;}
-.sheet-hint a:hover{text-decoration:underline;}
+.spin-txt{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text2);}
+#toast{position:fixed;bottom:62px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--gold2);padding:8px 20px;border-radius:4px;font-size:12px;letter-spacing:.08em;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;}
 </style>
 </head>
 <body>
@@ -134,9 +98,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--text);min-he
   <div class="lock-err" id="lerr"></div>
 </div>
 
-<div id="loading" style="display:none;">
-  <div class="loading-spinner"></div>
-  <div class="loading-txt">Загрузка данных…</div>
+<div id="loading" style="display:none">
+  <div class="spin"></div>
+  <div class="spin-txt">Загрузка…</div>
 </div>
 
 <div id="app">
@@ -145,547 +109,483 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--text);min-he
       <div class="hdr-title">✦ Авдюховы · Модовы</div>
       <div class="hdr-sub">Семейное древо</div>
     </div>
-    <div class="hdr-actions">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search" placeholder="Поиск…" oninput="doSearch(this.value)">
+    <div class="hdr-r">
+      <div class="srch">
+        <span class="srch-ic">🔍</span>
+        <input id="search" type="text" placeholder="Поиск…" oninput="doSearch(this.value)">
       </div>
-      <button class="btn" onclick="showSheetHint()">📋 Таблица</button>
-      <button class="btn" onclick="loadData()">↺ Обновить</button>
+      <button class="btn" onclick="loadData()">↺</button>
       <button class="btn" onclick="resetView()">⌂</button>
     </div>
   </div>
-  <div class="sheet-hint" id="sheet-hint">
-    Редактируйте данные в <a id="sheet-link" href="#" target="_blank">Google Таблице</a> — изменения появятся после обновления страницы.
-    <button onclick="document.getElementById('sheet-hint').style.display='none'" style="background:none;border:none;color:var(--text2);cursor:pointer;margin-left:8px;font-size:14px;">×</button>
+  <div class="canvas-wrap" id="wrap">
+    <div id="canvas"><svg id="svg-layer"></svg></div>
   </div>
-  <div class="canvas-wrap" id="canvas-wrap">
-    <div id="canvas">
-      <svg id="svg-layer"></svg>
-    </div>
-  </div>
-  <div class="zoom-ctrl">
-    <button class="zoom-btn" onclick="zoom(-0.15)">−</button>
-    <div class="zoom-lbl" id="zoom-lbl">100%</div>
-    <button class="zoom-btn" onclick="zoom(0.15)">+</button>
-  </div>
-  <div class="legend">
-    <span style="background:rgba(201,169,110,0.5)"></span>Родитель–ребёнок&nbsp;&nbsp;
-    <span style="background:rgba(201,169,110,0.8);border-top:1px dashed var(--gold)"></span>Супруги
+  <div class="zoom-c">
+    <button class="zb" onclick="zoom(-0.12)">−</button>
+    <div class="zl" id="zlbl">85%</div>
+    <button class="zb" onclick="zoom(0.12)">+</button>
   </div>
 </div>
 
 <div id="panel">
-  <div class="panel-header">
-    <button class="panel-close" onclick="closePanel()">×</button>
-    <div id="ph-photo"></div>
-    <div class="panel-name" id="ph-name"></div>
-    <div class="panel-maiden" id="ph-maiden"></div>
-    <div class="panel-meta" id="ph-meta"></div>
+  <div class="ph">
+    <button class="ph-close" onclick="closePanel()">×</button>
+    <div id="pp"></div>
+    <div class="ph-name" id="pn"></div>
+    <div class="ph-sub"  id="ps"></div>
+    <div class="ph-meta" id="pm"></div>
   </div>
-  <div class="panel-body">
-    <div id="ph-notes-wrap" style="display:none">
-      <span class="field-lbl">Заметки</span>
-      <div class="field-val" id="ph-notes"></div>
-    </div>
-    <hr class="divider">
-    <div>
-      <span class="field-lbl">Родственники</span>
-      <div class="kin-list" id="ph-kin"></div>
-    </div>
+  <div class="pb">
+    <div id="pnw" style="display:none"><span class="lbl">Заметки</span><div class="val" id="pnotes"></div></div>
+    <hr class="div">
+    <div><span class="lbl">Родственники</span><div class="kin-list" id="pkin"></div></div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════
-//  НАСТРОЙКИ — ЗАМЕНИТЬ SHEET_ID своим!
-// ════════════════════════════════════════════════
-const PASSWORD  = '1901';
-const SHEET_ID  = 'e/2PACX-1vQX34Hd-se92jrSaQXe8uDgy_CAfXRa0L3TM5IKdL4jG1LahUAMZtGc4rGhfPOER9-pUfjTKAJwpLpr/pubhtml?gid=0&single=true';   // ← сюда
-const SHEET_TAB = 'Лист1';               // имя листа
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}`;
+// ══════════════════════════════════════════
+// НАСТРОЙКИ
+// ══════════════════════════════════════════
+const PASSWORD = 'Timur1901';
 
-// ════════════════════════════════════════════════
-//  ДАННЫЕ — встроенные (из вашего Excel)
-//  Формат: {id, pid (parent ids через ;), name, maiden, year, city, photo, notes}
-//  Также: массив marriages [{a,b}] для линий супругов
-// ════════════════════════════════════════════════
-const BUILT_IN_PEOPLE = [
-  // ─── Линия Авдюховых ───────────────────────────
-  {id:'101', pid:'',    name:'Бабушка Ивана',         maiden:'Авдюхова',    year:'~1850', city:'',           photo:'', notes:''},
-  {id:'102', pid:'',    name:'Алексей Никитович',     maiden:'Авдюхов',     year:'1884',  city:'',           photo:'', notes:''},
-  {id:'103', pid:'',    name:'Дедушка Степан',        maiden:'Михайленко',  year:'~1850', city:'',           photo:'', notes:''},
-  {id:'104', pid:'',    name:'Бабушка Анны',          maiden:'Михайленко',  year:'~1850', city:'',           photo:'', notes:''},
-  {id:'105', pid:'103', name:'Анна Степановна',       maiden:'Михайленко',  year:'1915',  city:'',           photo:'', notes:''},
-  {id:'106', pid:'102', name:'Иван Алексеевич',       maiden:'Авдюхов',     year:'1915',  city:'',           photo:'', notes:''},
-  {id:'109', pid:'106', name:'Юрий Иванович',         maiden:'Авдюхов',     year:'1940',  city:'',           photo:'', notes:''},
-  {id:'110', pid:'106', name:'Владимир Иванович',     maiden:'Авдюхов',     year:'1940',  city:'',           photo:'', notes:''},
-  {id:'112', pid:'110', name:'Дмитрий Владимирович',  maiden:'Авдюхов',     year:'1969',  city:'Н.Новгород', photo:'', notes:''},
-  {id:'113', pid:'110', name:'Алексей Владимирович',  maiden:'Авдюхов',     year:'1969',  city:'',           photo:'', notes:''},
-  {id:'114', pid:'112', name:'Александр Дмитриевич',  maiden:'Авдюхов',     year:'1991',  city:'Н.Новгород', photo:'https://i.imgur.com/SxbIEYg.jpeg', notes:''},
-  // ─── Центр дерева ───────────────────────────────
-  {id:'116', pid:'114', name:'Тимур Александрович',   maiden:'Авдюхов',     year:'2025',  city:'Н.Новгород', photo:'https://i.imgur.com/SxbIEYg.jpeg', notes:'Сын Александра и Дарьи ✦'},
+// Публичная ссылка CSV — формируем из твоей published URL
+// Твоя published URL: https://docs.google.com/spreadsheets/d/e/2PACX-.../pubhtml?gid=0&single=true
+// CSV версия той же таблицы:
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQX34Hd-se92jrSaQXe8uDgy_CAfXRa0L3TM5IKdL4jG1LahUAMZtGc4rGhfPOER9-pUfjTKAJwpLpr/pub?output=csv&gid=0';
+
+// Ссылка для кнопки "открыть таблицу" (редактирование)
+const SHEET_EDIT_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQX34Hd-se92jrSaQXe8uDgy_CAfXRa0L3TM5IKdL4jG1LahUAMZtGc4rGhfPOER9-pUfjTKAJwpLpr/pubhtml';
+
+// ══════════════════════════════════════════
+// ВСТРОЕННЫЕ ДАННЫЕ (резерв если таблица недоступна)
+// ══════════════════════════════════════════
+const DEFAULT_PEOPLE = [
+  {id:'101',pid:'',      name:'Бабушка Ивана',          sub:'Авдюхова',              yr:'~1850',city:'',photo:'',notes:''},
+  {id:'102',pid:'',      name:'Алексей Никитович',       sub:'Авдюхов',               yr:'1884', city:'',photo:'',notes:''},
+  {id:'103',pid:'',      name:'Дедушка Степан',          sub:'Михайленко',            yr:'~1850',city:'',photo:'',notes:''},
+  {id:'104',pid:'',      name:'Бабушка Анны',            sub:'Михайленко',            yr:'~1850',city:'',photo:'',notes:''},
+  {id:'105',pid:'103',   name:'Анна Степановна',         sub:'Михайленко',            yr:'1915', city:'',photo:'',notes:''},
+  {id:'106',pid:'102',   name:'Иван Алексеевич',         sub:'Авдюхов',               yr:'1915', city:'',photo:'',notes:''},
+  {id:'109',pid:'106',   name:'Юрий Иванович',           sub:'Авдюхов',               yr:'1940', city:'',photo:'',notes:''},
+  {id:'110',pid:'106',   name:'Владимир Иванович',       sub:'Авдюхов',               yr:'1940', city:'',photo:'',notes:''},
+  {id:'112',pid:'110',   name:'Дмитрий Владимирович',    sub:'Авдюхов',               yr:'1969', city:'Н.Новгород',photo:'',notes:''},
+  {id:'113',pid:'110',   name:'Алексей Владимирович',    sub:'Авдюхов',               yr:'1969', city:'',photo:'',notes:''},
+  {id:'114',pid:'112',   name:'Александр Дмитриевич',    sub:'Авдюхов',               yr:'1991', city:'Н.Новгород',photo:'',notes:''},
+  {id:'115',pid:'',      name:'Бабушка Нины (1)',        sub:'Щербинина',             yr:'~1900',city:'',photo:'',notes:''},
+  {id:'117',pid:'',      name:'Дедушка Нины (1)',        sub:'Щербинин',              yr:'~1900',city:'',photo:'',notes:''},
+  {id:'118',pid:'',      name:'Бабушка Нины (2)',        sub:'?',                     yr:'~1900',city:'',photo:'',notes:''},
+  {id:'119',pid:'',      name:'Дедушка Нины (2)',        sub:'?',                     yr:'~1900',city:'',photo:'',notes:''},
+  {id:'108',pid:'117',   name:'Папа Нины',               sub:'Щербинин',              yr:'~1900',city:'',photo:'',notes:''},
+  {id:'107',pid:'118',   name:'Александра (мама Нины)',  sub:'Щербинина',             yr:'~1900',city:'',photo:'',notes:''},
+  {id:'111',pid:'108',   name:'Нина',                    sub:'Щербинина',             yr:'1940', city:'',photo:'',notes:''},
+  {id:'p5', pid:'',      name:'Михаил',                  sub:'Паулин',                yr:'~1900',city:'',photo:'',notes:''},
+  {id:'p7', pid:'',      name:'Леонид',                  sub:'Паулин',                yr:'~1900',city:'',photo:'',notes:''},
+  {id:'p10',pid:'p5',    name:'Борис Михайлович',        sub:'Паулин',                yr:'1935', city:'',photo:'',notes:''},
+  {id:'p9', pid:'p7',    name:'Наталия Леонидовна',      sub:'Паулина',               yr:'1935', city:'',photo:'',notes:''},
+  {id:'p13',pid:'p10',   name:'Эльвира Борисовна',       sub:'Паулина → Авдюхова',   yr:'1963', city:'Павлово',photo:'',notes:''},
+  {id:'p14',pid:'p10',   name:'Владимир Борисович',      sub:'Паулин',                yr:'1970', city:'',photo:'',notes:''},
+  {id:'p15',pid:'p14',   name:'Дмитрий Владимирович',    sub:'Паулин',                yr:'2000', city:'',photo:'',notes:''},
+  {id:'m120',pid:'',     name:'Дед Ивана Модова',        sub:'Модов',                 yr:'~1900',city:'',photo:'',notes:''},
+  {id:'m121',pid:'',     name:'Дед Александра Модова',   sub:'Модов',                 yr:'~1900',city:'',photo:'',notes:''},
+  {id:'m1', pid:'m120',  name:'Отец Ивана',              sub:'Модов',                 yr:'~1900',city:'',photo:'',notes:''},
+  {id:'m3', pid:'m121',  name:'Отец Александра',         sub:'Модов',                 yr:'~1900',city:'',photo:'',notes:''},
+  {id:'m11',pid:'m1',    name:'Нина Ивановна',           sub:'Модова',                yr:'1935', city:'',photo:'',notes:''},
+  {id:'m12',pid:'m3',    name:'Александр',               sub:'Модов',                 yr:'1935', city:'',photo:'',notes:''},
+  {id:'m16',pid:'m12',   name:'Сергей Александрович',    sub:'Модов',                 yr:'1963', city:'Пермь',photo:'',notes:''},
+  {id:'m17',pid:'m16',   name:'Дарья Сергеевна',         sub:'Модова → Авдюхова',    yr:'1992', city:'Пермь',photo:'',notes:''},
+  {id:'m18',pid:'m16',   name:'Михаил Сергеевич',        sub:'Модов',                 yr:'1989', city:'',photo:'',notes:''},
+  {id:'B1', pid:'',      name:'Фёдор Иакович',           sub:'Борисов',               yr:'~1900',city:'',photo:'',notes:''},
+  {id:'B4', pid:'B1',    name:'Виктор Фёдорович',        sub:'Борисов',               yr:'1939', city:'',photo:'',notes:''},
+  {id:'BV', pid:'B4',    name:'Владимир Викторович',     sub:'Борисов',               yr:'1955', city:'',photo:'',notes:''},
+  {id:'EV', pid:'B4',    name:'Елена Викторовна',        sub:'Борисова → Авдюхова',  yr:'1969', city:'Н.Новгород',photo:'',notes:''},
+  {id:'S1', pid:'',      name:'Муртаз',                  sub:'Сафин',                 yr:'~1900',city:'',photo:'',notes:''},
+  {id:'S2', pid:'S1',    name:'Маргарита Муртазовна',    sub:'Сафина',                yr:'1937', city:'',photo:'',notes:''},
+  {id:'S3', pid:'S1',    name:'Мария Муртазовна',        sub:'Сафина',                yr:'1937', city:'',photo:'',notes:''},
+  {id:'S4', pid:'S1',    name:'Лиза Муртазовна',         sub:'Сафина',                yr:'1937', city:'',photo:'',notes:''},
+  {id:'116',pid:'114',   name:'Тимур Александрович',     sub:'Авдюхов',               yr:'2025', city:'Н.Новгород',photo:'',notes:'Сын Александра и Дарьи ✦'},
+];
+const DEFAULT_MARRIAGES = [
+  {a:'101',b:'102'},{a:'103',b:'104'},{a:'105',b:'106'},
+  {a:'107',b:'108'},{a:'111',b:'110'},
+  {a:'p5',b:'p9'/*фикт*/},{a:'p7',b:'p9'},
+  {a:'p9',b:'p10'},{a:'p13',b:'112'},
+  {a:'m11',b:'m12'},{a:'m16',b:'p13'},
+  {a:'114',b:'m17'},{a:'B1',b:'EV'/*фикт*/},
 ];
 
-const BUILT_IN_MARRIAGES = [
-  {a:'101',b:'102'},{a:'103',b:'104'},
-  {a:'105',b:'106'},
-  {a:'107',b:'108'},
-  {a:'111',b:'110'},
-  {a:'5',b:'6'},{a:'7',b:'8'},
-  {a:'9',b:'10'},
-  {a:'13',b:'112'},  // Эльвира + Дмитрий → Александр
-  {a:'11',b:'12'},   // Нина Ивановна + Александр Модов → Сергей
-  {a:'1',b:'2'},{a:'3',b:'4'},
-  {a:'16',b:'13'},   // Сергей + Эльвира нет, правильно: Сергей Модов ∞ неизвестная; Эльвира ∞ Дмитрий Авдюхов
-  {a:'114',b:'17'},  // Александр Авдюхов ∞ Дарья Модова
-  {a:'B1',b:'B2'},{a:'S1',b:'S2'/*фиктивно*/},
-];
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let people=[], marriages=[];
+let selId=null;
+let scale=0.85, panX=60, panY=40;
+const CW=154, CH=146, HG=34, VG=68;
 
-// ════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════
-let people = [], marriages = [];
-let selectedId = null;
-let scale = 0.85, panX = 60, panY = 40;
-const CW = 154, CH = 148; // card width / height
-const HGAP = 36, VGAP = 70;
-
-// ════════════════════════════════════════════════
-//  LOCK
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// LOCK
+// ══════════════════════════════════════════
 function unlock(){
-  const v = document.getElementById('pwd').value;
-  const err = document.getElementById('lerr');
-  if(v === PASSWORD){
-    document.getElementById('lock').style.display = 'none';
-    document.getElementById('loading').style.display = 'flex';
-    document.getElementById('app').style.display = 'flex';
+  const v=document.getElementById('pwd').value;
+  const err=document.getElementById('lerr');
+  if(v===PASSWORD){
+    document.getElementById('lock').style.display='none';
+    document.getElementById('loading').style.display='flex';
+    document.getElementById('app').style.display='flex';
     loadData();
   } else {
-    err.textContent = 'Неверный пароль';
-    setTimeout(()=>err.textContent='', 2500);
-    document.getElementById('pwd').style.borderColor='#c0604a';
-    setTimeout(()=>document.getElementById('pwd').style.borderColor='', 1000);
+    err.textContent='Неверный пароль';
+    setTimeout(()=>err.textContent='',2500);
+    const i=document.getElementById('pwd');
+    i.style.borderColor='#c0604a';
+    setTimeout(()=>i.style.borderColor='',1000);
   }
 }
 function toggleEye(){
-  const i = document.getElementById('pwd');
-  i.type = i.type==='password'?'text':'password';
+  const i=document.getElementById('pwd');
+  i.type=i.type==='password'?'text':'password';
 }
 
-// ════════════════════════════════════════════════
-//  DATA LOADING (Google Sheets публичный CSV или fallback)
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// DATA — читаем CSV через публичную pub-ссылку
+// ══════════════════════════════════════════
 async function loadData(){
-  if(SHEET_ID === '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms'){
-    // Нет таблицы — используем встроенные данные
-    people = BUILT_IN_PEOPLE.map(p=>({...p}));
-    marriages = BUILT_IN_MARRIAGES.map(m=>({...m}));
-    finishLoad();
-    return;
-  }
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
+  document.getElementById('loading').style.display='flex';
   try {
-    const res = await fetch(url);
-    if(!res.ok) throw new Error();
+    // pub?output=csv работает без CORS для публично опубликованных таблиц
+    const res = await fetch(SHEET_CSV_URL);
+    if(!res.ok) throw new Error('HTTP '+res.status);
     const csv = await res.text();
-    parseCSV(csv);
-    finishLoad();
+    const parsed = parseCSV(csv);
+    if(parsed && parsed.length > 0){
+      people = parsed;
+      marriages = DEFAULT_MARRIAGES;
+      toast('Данные загружены из таблицы ✦');
+    } else {
+      throw new Error('empty');
+    }
   } catch(e){
-    // fallback
-    people = BUILT_IN_PEOPLE.map(p=>({...p}));
-    marriages = BUILT_IN_MARRIAGES.map(m=>({...m}));
-    finishLoad();
-    toast('Таблица недоступна — загружены встроенные данные');
+    people = DEFAULT_PEOPLE.map(p=>({...p}));
+    marriages = DEFAULT_MARRIAGES.map(m=>({...m}));
+    toast('Таблица пока недоступна — показаны встроенные данные');
   }
-}
-
-function parseCSV(csv){
-  const lines = csv.trim().split('\n').map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
-  const [header, ...rows] = lines;
-  const idx = k => header.indexOf(k);
-  people = rows.filter(r=>r[idx('Id')]).map(r=>({
-    id:     r[idx('Id')] || '',
-    pid:    r[idx('Perent ID')] || r[idx('Pid')] || '',
-    name:   r[idx('Name')] || r[idx('Title ')] || '',
-    maiden: r[idx('Subtitle')] || '',
-    year:   r[idx('Year')] || r[idx('Год')] || '',
-    city:   r[idx('City')] || '',
-    photo:  r[idx('Photo URL')] || r[idx('Node Image')] || '',
-    notes:  r[idx('Content 3')] || '',
-  }));
-  marriages = BUILT_IN_MARRIAGES; // браки из встроенных (в таблице их нет отдельно)
-}
-
-function finishLoad(){
-  document.getElementById('loading').style.display = 'none';
+  document.getElementById('loading').style.display='none';
   layoutTree();
   renderTree();
 }
 
-// ════════════════════════════════════════════════
-//  TREE LAYOUT — вертикальное дерево (Reingold-Tilford упрощённый)
-// ════════════════════════════════════════════════
+function parseCSV(csv){
+  // Разбиваем CSV аккуратно — учитываем кавычки
+  const rows = [];
+  let cur='', inQ=false;
+  const cells=[];
+  const pushCell=()=>{cells.push(cur.replace(/^"|"$/g,'').replace(/""/g,'"').trim());cur='';};
+  for(let i=0;i<csv.length;i++){
+    const c=csv[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){pushCell();}
+    else if((c==='\n'||c==='\r')&&!inQ){
+      pushCell();
+      if(cells.some(x=>x))rows.push([...cells]);
+      cells.length=0;
+    } else {cur+=c;}
+  }
+  pushCell();
+  if(cells.some(x=>x))rows.push([...cells]);
+  if(rows.length<2)return null;
+
+  const header=rows[0];
+  const idx=k=>{
+    const i=header.findIndex(h=>h.trim()===k.trim());
+    return i>=0?i:header.findIndex(h=>h.trim().toLowerCase()===k.trim().toLowerCase());
+  };
+
+  // Определяем индексы — поддерживаем оба варианта названий столбцов
+  const iId    = idx('Id');
+  const iPid   = idx('Perent ID')>=0 ? idx('Perent ID') : idx('Pid');
+  const iName  = idx('Name')>=0 ? idx('Name') : idx('Title');
+  const iSub   = idx('Subtitle');
+  const iYr    = idx('Year')>=0 ? idx('Year') : idx('Год');
+  const iCity  = idx('City');
+  const iPhoto = idx('Photo URL')>=0 ? idx('Photo URL') : idx('Node Image');
+  const iNotes = idx('Notes')>=0 ? idx('Notes') : idx('Content 3');
+
+  const result=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const id=(r[iId]||'').trim();
+    if(!id)continue;
+    result.push({
+      id,
+      pid:  (r[iPid]||'').trim(),
+      name: (r[iName]||'').trim() || id,
+      sub:  (r[iSub]||'').trim(),
+      yr:   (r[iYr]||'').trim(),
+      city: (r[iCity]||'').trim(),
+      photo:(r[iPhoto]||'').trim(),
+      notes:(r[iNotes]||'').trim(),
+    });
+  }
+  return result;
+}
+
+// ══════════════════════════════════════════
+// LAYOUT — вертикальное дерево
+// ══════════════════════════════════════════
 function buildChildMap(){
-  const map = {};
+  const map={};
+  people.forEach(p=>{map[p.id]=[];});
   people.forEach(p=>{
-    map[p.id] = [];
-  });
-  people.forEach(p=>{
-    if(!p.pid) return;
-    const pids = p.pid.split(/[;,\s]+/).filter(Boolean);
-    pids.forEach(pid=>{
-      if(map[pid]) map[pid].push(p.id);
+    if(!p.pid)return;
+    p.pid.split(/[;,\s]+/).filter(Boolean).forEach(pid=>{
+      if(map[pid])map[pid].push(p.id);
     });
   });
   return map;
 }
 
 function layoutTree(){
-  const childMap = buildChildMap();
-  // find roots (no parent or parent not in our set)
-  const ids = new Set(people.map(p=>p.id));
-  const roots = people.filter(p=>{
-    if(!p.pid) return true;
-    const pids = p.pid.split(/[;,\s]+/).filter(Boolean);
-    return !pids.some(pid=>ids.has(pid));
+  const childMap=buildChildMap();
+  const ids=new Set(people.map(p=>p.id));
+  const roots=people.filter(p=>{
+    if(!p.pid)return true;
+    return !p.pid.split(/[;,\s]+/).filter(Boolean).some(pid=>ids.has(pid));
   }).map(p=>p.id);
 
-  // BFS assign depth
-  const depth = {}, visited = new Set();
-  const queue = roots.map(r=>({id:r,d:0}));
-  while(queue.length){
-    const {id,d} = queue.shift();
-    if(visited.has(id)) continue;
-    visited.add(id);
-    depth[id] = d;
-    (childMap[id]||[]).forEach(cid=>queue.push({id:cid,d:d+1}));
+  const depth={};
+  const q=roots.map(r=>({id:r,d:0}));
+  const vis=new Set();
+  while(q.length){
+    const {id,d}=q.shift();
+    if(vis.has(id))continue;
+    vis.add(id);depth[id]=d;
+    (childMap[id]||[]).forEach(c=>q.push({id:c,d:d+1}));
   }
-  // unvisited nodes get depth 0
-  people.forEach(p=>{ if(depth[p.id]===undefined) depth[p.id]=0; });
+  people.forEach(p=>{if(depth[p.id]===undefined)depth[p.id]=0;});
 
-  const maxDepth = Math.max(...Object.values(depth));
-  const byDepth = {};
-  for(let d=0; d<=maxDepth; d++) byDepth[d]=[];
-  people.forEach(p=>byDepth[depth[p.id]].push(p.id));
+  const maxD=Math.max(...Object.values(depth));
+  const byD={};
+  for(let d=0;d<=maxD;d++)byD[d]=[];
+  people.forEach(p=>byD[depth[p.id]].push(p.id));
 
-  // assign x positions — pack by depth level
-  const posMap = {};
-  for(let d=0; d<=maxDepth; d++){
-    const row = byDepth[d];
-    row.forEach((id,i)=>{
-      posMap[id] = { x: i*(CW+HGAP), y: d*(CH+VGAP) };
-    });
+  // Центрируем детей под родителями
+  const posMap={};
+  // Первый проход — позиции слева направо
+  for(let d=0;d<=maxD;d++){
+    byD[d].forEach((id,i)=>{posMap[id]={x:i*(CW+HG),y:d*(CH+VG)};});
   }
 
-  // apply positions to people
   people.forEach(p=>{
-    const pos = posMap[p.id] || {x:0,y:0};
-    p.x = pos.x;
-    p.y = pos.y;
+    const pos=posMap[p.id]||{x:0,y:0};
+    p.x=pos.x; p.y=pos.y;
   });
 }
 
-// ════════════════════════════════════════════════
-//  RENDER
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
 function renderTree(){
-  const canvas = document.getElementById('canvas');
+  const canvas=document.getElementById('canvas');
   canvas.querySelectorAll('.person-card').forEach(e=>e.remove());
   drawSVG();
-  people.forEach(p=>renderCard(p));
-  applyTransform();
+  people.forEach(p=>makeCard(p));
+  applyT();
 }
 
-function renderCard(p){
-  const canvas = document.getElementById('canvas');
-  const el = document.createElement('div');
-  el.className = 'person-card' + (p.id===selectedId?' selected':'');
-  el.id = 'card-'+p.id;
-  el.style.left = p.x+'px';
-  el.style.top  = p.y+'px';
-
-  const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-
-  // photo
-  let photoHtml = '';
-  if(p.photo){
-    // convert Google Drive share link → direct embed
-    const src = gdriveUrl(p.photo);
-    photoHtml = `<img class="card-photo" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="">
-      <div class="card-photo-placeholder" style="display:none">${initials}</div>`;
-  } else {
-    photoHtml = `<div class="card-photo-placeholder">${initials}</div>`;
-  }
-
-  el.innerHTML = `${photoHtml}
-    <div class="card-body">
-      <div class="card-name">${p.name}</div>
-      ${p.maiden?`<div class="card-maiden">${p.maiden}</div>`:''}
-      ${p.year?`<div class="card-year">${p.year}${p.city?' · '+p.city:''}</div>`:''}
-    </div>`;
-
-  el.addEventListener('click', ()=>selectPerson(p.id));
-  makeDraggable(el, p);
-  canvas.appendChild(el);
-}
-
-function gdriveUrl(url){
-  // Google Drive: https://drive.google.com/file/d/ID/view → https://drive.google.com/uc?id=ID
-  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)\//);
-  if(m) return `https://drive.google.com/uc?id=${m[1]}`;
-  // Yandex Disk: оставляем как есть (прямые ссылки работают)
+function gdrive(url){
+  if(!url)return'';
+  const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(m)return`https://drive.google.com/uc?export=view&id=${m[1]}`;
   return url;
 }
 
+function initials(name){
+  return name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+}
+
+function makeCard(p){
+  const canvas=document.getElementById('canvas');
+  const el=document.createElement('div');
+  el.className='person-card'+(p.id===selId?' selected':'');
+  el.id='card-'+p.id;
+  el.style.left=p.x+'px';
+  el.style.top=p.y+'px';
+  const ini=initials(p.name);
+  const src=gdrive(p.photo);
+  el.innerHTML=(src
+    ?`<img class="card-photo" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="card-ph" style="display:none">${ini}</div>`
+    :`<div class="card-ph">${ini}</div>`)
+    +`<div class="card-body">
+        <div class="card-name">${p.name}</div>
+        ${p.sub?`<div class="card-sub">${p.sub}</div>`:''}
+        ${p.yr?`<div class="card-yr">${p.yr}${p.city?' · '+p.city:''}</div>`:''}
+      </div>`;
+  el.addEventListener('click',()=>selectP(p.id));
+  drag(el,p);
+  canvas.appendChild(el);
+}
+
 function drawSVG(){
-  const svg = document.getElementById('svg-layer');
-  svg.innerHTML = '';
-  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
-  svg.appendChild(defs);
+  const svg=document.getElementById('svg-layer');
+  svg.innerHTML='';
+  const pm={};people.forEach(p=>pm[p.id]=p);
+  const drawn=new Set();
 
-  const drawn = new Set();
-  const pmap = {};
-  people.forEach(p=>pmap[p.id]=p);
-
-  // parent → child lines
+  // Родитель → ребёнок
   people.forEach(p=>{
-    if(!p.pid) return;
-    const pids = p.pid.split(/[;,\s]+/).filter(Boolean);
-    pids.forEach(pid=>{
-      const par = pmap[pid];
-      if(!par) return;
-      const key = [pid,p.id].join('-');
-      if(drawn.has(key)) return;
-      drawn.add(key);
-      // from bottom of parent to top of child
-      const x1 = par.x + CW/2, y1 = par.y + CH;
-      const x2 = p.x + CW/2,   y2 = p.y;
-      const my = (y1+y2)/2;
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    if(!p.pid)return;
+    p.pid.split(/[;,\s]+/).filter(Boolean).forEach(pid=>{
+      const par=pm[pid];if(!par)return;
+      const key=pid+'>'+p.id;if(drawn.has(key))return;drawn.add(key);
+      const x1=par.x+CW/2, y1=par.y+CH;
+      const x2=p.x+CW/2,   y2=p.y;
+      const my=(y1+y2)/2;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('d',`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
       path.setAttribute('fill','none');
-      path.setAttribute('stroke','rgba(201,169,110,0.35)');
+      path.setAttribute('stroke','rgba(201,169,110,0.32)');
       path.setAttribute('stroke-width','1.2');
       svg.appendChild(path);
     });
   });
 
-  // spouse lines (horizontal dashed)
+  // Супруги
   marriages.forEach(m=>{
-    const pa = pmap[m.a], pb = pmap[m.b];
-    if(!pa||!pb) return;
-    const key = [m.a,m.b].sort().join('=');
-    if(drawn.has(key)) return;
-    drawn.add(key);
-    const x1 = pa.x + CW, y1 = pa.y + CH/2;
-    const x2 = pb.x,      y2 = pb.y + CH/2;
-    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    const pa=pm[m.a],pb=pm[m.b];if(!pa||!pb)return;
+    const key=[m.a,m.b].sort().join('=');if(drawn.has(key))return;drawn.add(key);
+    const x1=pa.x+CW,y1=pa.y+CH*0.45;
+    const x2=pb.x,  y2=pb.y+CH*0.45;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     line.setAttribute('x1',x1);line.setAttribute('y1',y1);
     line.setAttribute('x2',x2);line.setAttribute('y2',y2);
-    line.setAttribute('stroke','rgba(201,169,110,0.55)');
+    line.setAttribute('stroke','rgba(201,169,110,0.5)');
     line.setAttribute('stroke-width','1.2');
     line.setAttribute('stroke-dasharray','5,3');
     svg.appendChild(line);
   });
 }
 
-// ════════════════════════════════════════════════
-//  INTERACTIONS
-// ════════════════════════════════════════════════
-function selectPerson(id){
-  selectedId = id;
-  document.querySelectorAll('.person-card').forEach(el=>{
-    el.classList.toggle('selected', el.id==='card-'+id);
-  });
+// ══════════════════════════════════════════
+// PANEL
+// ══════════════════════════════════════════
+function selectP(id){
+  selId=id;
+  document.querySelectorAll('.person-card').forEach(el=>el.classList.toggle('selected',el.id==='card-'+id));
   openPanel(id);
 }
 
 function openPanel(id){
-  const p = people.find(x=>x.id===id);
-  if(!p) return;
-  const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const p=people.find(x=>x.id===id);if(!p)return;
+  const ini=initials(p.name);
+  const src=gdrive(p.photo);
+  const pp=document.getElementById('pp');
+  pp.innerHTML=src
+    ?`<img class="ph-img" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="ph-img-ph" style="display:none">${ini}</div>`
+    :`<div class="ph-img-ph">${ini}</div>`;
+  document.getElementById('pn').textContent=p.name;
+  document.getElementById('ps').textContent=p.sub||'';
+  document.getElementById('pm').textContent=[p.yr,p.city].filter(Boolean).join(' · ');
+  const nw=document.getElementById('pnw');
+  if(p.notes){nw.style.display='block';document.getElementById('pnotes').textContent=p.notes;}
+  else nw.style.display='none';
 
-  // photo
-  const phPhoto = document.getElementById('ph-photo');
-  if(p.photo){
-    const src = gdriveUrl(p.photo);
-    phPhoto.innerHTML = `<img class="panel-photo" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="">
-      <div class="panel-photo-ph" style="display:none">${initials}</div>`;
-  } else {
-    phPhoto.innerHTML = `<div class="panel-photo-ph">${initials}</div>`;
-  }
-
-  document.getElementById('ph-name').textContent = p.name;
-  document.getElementById('ph-maiden').textContent = p.maiden||'';
-  const meta = [p.year, p.city].filter(Boolean).join(' · ');
-  document.getElementById('ph-meta').textContent = meta;
-
-  const notesWrap = document.getElementById('ph-notes-wrap');
-  if(p.notes){
-    notesWrap.style.display='block';
-    document.getElementById('ph-notes').textContent = p.notes;
-  } else {
-    notesWrap.style.display='none';
-  }
-
-  // kin
-  const kinList = document.getElementById('ph-kin');
-  kinList.innerHTML = '';
-  const pmap = {};
-  people.forEach(x=>pmap[x.id]=x);
-
-  const addKin = (person, role) => {
-    if(!person) return;
-    const ini = person.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const div = document.createElement('div');
-    div.className = 'kin-item';
-    const src = person.photo ? gdriveUrl(person.photo) : '';
-    div.innerHTML = src
-      ? `<img class="kin-avatar" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="kin-avatar-ph" style="display:none">${ini}</div>`
-      : `<div class="kin-avatar-ph">${ini}</div>`;
-    div.innerHTML += `<div class="kin-info"><div class="kin-name">${person.name}</div><div class="kin-role">${role}</div></div>`;
-    div.addEventListener('click', ()=>{ selectPerson(person.id); scrollToCard(person.id); });
-    kinList.appendChild(div);
+  const pm2={};people.forEach(x=>pm2[x.id]=x);
+  const kinList=document.getElementById('pkin');
+  kinList.innerHTML='';
+  const addKin=(person,role)=>{
+    if(!person)return;
+    const ini2=initials(person.name);
+    const src2=gdrive(person.photo);
+    const d=document.createElement('div');d.className='kin';
+    d.innerHTML=(src2
+      ?`<img class="kin-av" src="${src2}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="kin-av-ph" style="display:none">${ini2}</div>`
+      :`<div class="kin-av-ph">${ini2}</div>`)
+      +`<div style="min-width:0"><div class="kin-name">${person.name}</div><div class="kin-role">${role}</div></div>`;
+    d.onclick=()=>{selectP(person.id);scrollTo(person.id);};
+    kinList.appendChild(d);
   };
-
-  // parents
-  if(p.pid){
-    p.pid.split(/[;,\s]+/).filter(Boolean).forEach(pid=>{
-      if(pmap[pid]) addKin(pmap[pid], 'Родитель');
-    });
-  }
-  // children
-  people.filter(x=>{
-    if(!x.pid) return false;
-    return x.pid.split(/[;,\s]+/).includes(p.id);
-  }).forEach(c=>addKin(c,'Ребёнок'));
-  // spouses
+  if(p.pid)p.pid.split(/[;,\s]+/).filter(Boolean).forEach(pid=>addKin(pm2[pid],'Родитель'));
+  people.filter(x=>x.pid&&x.pid.split(/[;,\s]+/).includes(p.id)).forEach(c=>addKin(c,'Ребёнок'));
   marriages.forEach(m=>{
-    if(m.a===p.id && pmap[m.b]) addKin(pmap[m.b],'Супруг(а)');
-    if(m.b===p.id && pmap[m.a]) addKin(pmap[m.a],'Супруг(а)');
+    if(m.a===p.id)addKin(pm2[m.b],'Супруг(а)');
+    if(m.b===p.id)addKin(pm2[m.a],'Супруг(а)');
   });
-
-  if(!kinList.children.length) kinList.innerHTML = '<div style="font-size:12px;color:var(--text2)">Нет данных</div>';
+  if(!kinList.children.length)kinList.innerHTML='<div style="font-size:12px;color:var(--text2)">Нет данных</div>';
   document.getElementById('panel').classList.add('open');
 }
 
 function closePanel(){
   document.getElementById('panel').classList.remove('open');
-  selectedId = null;
+  selId=null;
   document.querySelectorAll('.person-card').forEach(el=>el.classList.remove('selected'));
 }
 
-function scrollToCard(id){
-  const p = people.find(x=>x.id===id);
-  if(!p) return;
-  const wrap = document.getElementById('canvas-wrap');
-  panX = wrap.clientWidth/2 - (p.x + CW/2)*scale;
-  panY = wrap.clientHeight/2 - (p.y + CH/2)*scale;
-  applyTransform();
+function scrollTo(id){
+  const p=people.find(x=>x.id===id);if(!p)return;
+  const w=document.getElementById('wrap');
+  panX=w.clientWidth/2-(p.x+CW/2)*scale;
+  panY=w.clientHeight/2-(p.y+CH/2)*scale;
+  applyT();
 }
 
-// Search
 function doSearch(q){
-  q = q.toLowerCase().trim();
+  q=q.toLowerCase().trim();
   document.querySelectorAll('.person-card').forEach(el=>{
-    const id = el.id.replace('card-','');
-    const p = people.find(x=>x.id===id);
-    if(!p) return;
-    const match = !q || p.name.toLowerCase().includes(q) || (p.maiden||'').toLowerCase().includes(q) || (p.city||'').toLowerCase().includes(q);
-    el.classList.toggle('highlight', !!q && match);
-    el.style.opacity = q && !match ? '0.25' : '1';
+    const id=el.id.replace('card-','');
+    const p=people.find(x=>x.id===id);if(!p)return;
+    const match=!q||p.name.toLowerCase().includes(q)||(p.sub||'').toLowerCase().includes(q)||(p.city||'').toLowerCase().includes(q);
+    el.classList.toggle('dim',!!q&&!match);
   });
 }
 
-// ════════════════════════════════════════════════
-//  DRAG CARDS
-// ════════════════════════════════════════════════
-function makeDraggable(el, person){
-  let dragging=false, sx=0,sy=0, ox=0,oy=0, moved=false;
-  el.addEventListener('mousedown', e=>{
-    if(e.button!==0) return;
-    dragging=true; moved=false;
-    sx=e.clientX; sy=e.clientY; ox=person.x; oy=person.y;
-    e.stopPropagation();
-  });
-  window.addEventListener('mousemove', e=>{
-    if(!dragging) return;
-    const dx=(e.clientX-sx)/scale, dy=(e.clientY-sy)/scale;
-    if(Math.abs(dx)>3||Math.abs(dy)>3) moved=true;
-    person.x=Math.round(ox+dx); person.y=Math.round(oy+dy);
-    el.style.left=person.x+'px'; el.style.top=person.y+'px';
+// ══════════════════════════════════════════
+// DRAG
+// ══════════════════════════════════════════
+function drag(el,p){
+  let dn=false,sx=0,sy=0,ox=0,oy=0,mv=false;
+  el.addEventListener('mousedown',e=>{if(e.button!==0)return;dn=true;mv=false;sx=e.clientX;sy=e.clientY;ox=p.x;oy=p.y;e.stopPropagation();});
+  window.addEventListener('mousemove',e=>{
+    if(!dn)return;
+    const dx=(e.clientX-sx)/scale,dy=(e.clientY-sy)/scale;
+    if(Math.abs(dx)>3||Math.abs(dy)>3)mv=true;
+    p.x=Math.round(ox+dx);p.y=Math.round(oy+dy);
+    el.style.left=p.x+'px';el.style.top=p.y+'px';
     drawSVG();
   });
-  window.addEventListener('mouseup', ()=>{
-    if(dragging && !moved){ /* click handled by click event */ }
-    dragging=false;
-  });
+  window.addEventListener('mouseup',()=>{dn=false;});
 }
 
-// ════════════════════════════════════════════════
-//  PAN & ZOOM
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// PAN & ZOOM
+// ══════════════════════════════════════════
 (()=>{
-  const wrap = document.getElementById('canvas-wrap');
-  let panning=false, sx=0,sy=0, opx=0,opy=0;
-  wrap.addEventListener('mousedown', e=>{
-    if(e.target.closest('.person-card')) return;
-    panning=true; sx=e.clientX; sy=e.clientY; opx=panX; opy=panY;
-    wrap.classList.add('grabbing');
-  });
-  window.addEventListener('mousemove', e=>{
-    if(!panning) return;
-    panX=opx+(e.clientX-sx); panY=opy+(e.clientY-sy);
-    applyTransform();
-  });
-  window.addEventListener('mouseup', ()=>{ panning=false; wrap.classList.remove('grabbing'); });
-  wrap.addEventListener('wheel', e=>{
-    e.preventDefault();
-    zoom(e.deltaY>0?-0.1:0.1);
-  },{passive:false});
-  // touch pan
+  const w=document.getElementById('wrap');
+  let pn2=false,sx=0,sy=0,opx=0,opy=0;
+  w.addEventListener('mousedown',e=>{if(e.target.closest('.person-card'))return;pn2=true;sx=e.clientX;sy=e.clientY;opx=panX;opy=panY;w.classList.add('grabbing');});
+  window.addEventListener('mousemove',e=>{if(!pn2)return;panX=opx+(e.clientX-sx);panY=opy+(e.clientY-sy);applyT();});
+  window.addEventListener('mouseup',()=>{pn2=false;w.classList.remove('grabbing');});
+  w.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?-0.1:0.1);},{passive:false});
   let t0=null;
-  wrap.addEventListener('touchstart', e=>{ if(e.touches.length===1){ t0={x:e.touches[0].clientX,y:e.touches[0].clientY,px:panX,py:panY}; } });
-  wrap.addEventListener('touchmove', e=>{ e.preventDefault(); if(t0&&e.touches.length===1){ panX=t0.px+(e.touches[0].clientX-t0.x); panY=t0.py+(e.touches[0].clientY-t0.y); applyTransform(); }},{passive:false});
+  w.addEventListener('touchstart',e=>{if(e.touches.length===1)t0={x:e.touches[0].clientX,y:e.touches[0].clientY,px:panX,py:panY};});
+  w.addEventListener('touchmove',e=>{e.preventDefault();if(t0&&e.touches.length===1){panX=t0.px+(e.touches[0].clientX-t0.x);panY=t0.py+(e.touches[0].clientY-t0.y);applyT();}},{passive:false});
 })();
 
-function zoom(d){
-  scale=Math.max(0.15,Math.min(3,scale+d));
-  applyTransform();
-}
-function resetView(){ scale=0.85; panX=60; panY=40; applyTransform(); }
-function applyTransform(){
+function zoom(d){scale=Math.max(0.15,Math.min(3,scale+d));applyT();}
+function resetView(){scale=0.85;panX=60;panY=40;applyT();}
+function applyT(){
   document.getElementById('canvas').style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
-  document.getElementById('zoom-lbl').textContent=Math.round(scale*100)+'%';
+  document.getElementById('zlbl').textContent=Math.round(scale*100)+'%';
 }
 
-// ════════════════════════════════════════════════
-//  SHEET HINT
-// ════════════════════════════════════════════════
-function showSheetHint(){
-  const hint = document.getElementById('sheet-hint');
-  document.getElementById('sheet-link').href = SHEET_URL;
-  hint.style.display = 'block';
-  setTimeout(()=>hint.style.display='none', 8000);
-}
-
-// ════════════════════════════════════════════════
-//  TOAST
-// ════════════════════════════════════════════════
 function toast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.style.opacity='1';
-  clearTimeout(t._t);
-  t._t=setTimeout(()=>t.style.opacity='0',3000);
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',3500);
 }
 
-// close panel on outside click
-document.getElementById('canvas-wrap').addEventListener('click', e=>{
-  if(!e.target.closest('.person-card') && selectedId){ closePanel(); }
+document.getElementById('wrap').addEventListener('click',e=>{
+  if(!e.target.closest('.person-card')&&selId)closePanel();
 });
 </script>
 </body>
