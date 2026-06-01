@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Семейное дерево</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F0E8;--bg2:#FDFAF5;--bg3:#EDE8DC;--bg4:#E0D9CC;
+  --ink:#2C2416;--ink2:#6B5D4A;--ink3:#9E8E78;
+  --gold:#8B6914;--gold2:#C9A96E;--gold3:#F0E0B8;
+  --red:#8B2020;
+  --border:#D4C9B0;--border2:#B8A880;
+  --cw:170px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow:hidden;}
+
+/* LOCK */
+#lock{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:20px;}
+.li{font-size:40px;animation:pulse 3s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+.lh{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;letter-spacing:.06em;color:var(--ink);text-align:center;}
+.ls{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink3);margin-top:-12px;}
+.lw{position:relative;width:280px;}
+.lw input{width:100%;padding:14px 46px 14px 18px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:8px;color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color .2s;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.lw input:focus{border-color:var(--gold);}
+.leye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);font-size:17px;}
+.lbtn{width:280px;padding:14px;background:var(--ink);border:none;border-radius:8px;color:#FDF9F0;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;box-shadow:0 4px 16px rgba(44,36,22,.2);}
+.lbtn:hover{background:var(--gold);}
+.lerr{font-size:12px;color:var(--red);height:16px;}
+
+/* APP */
+#app{display:none;width:100%;height:100vh;flex-direction:column;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+.htitle{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;letter-spacing:.05em;color:var(--ink);}
+.hsub{font-size:11px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-top:1px;}
+.hr{display:flex;gap:8px;align-items:center;}
+.btn{padding:8px 16px;border-radius:6px;font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .18s;border:1.5px solid var(--border2);background:var(--bg2);color:var(--ink2);}
+.btn:hover{background:var(--bg3);border-color:var(--gold);color:var(--gold);}
+.sw{position:relative;}
+.sw input{padding:8px 14px 8px 32px;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;color:var(--ink);font-family:'Inter',sans-serif;font-size:12px;width:190px;outline:none;transition:border-color .2s,width .3s;}
+.sw input:focus{border-color:var(--gold);width:230px;}
+.sic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:13px;pointer-events:none;}
+
+/* CANVAS */
+.cw{flex:1;overflow:hidden;position:relative;cursor:grab;background:var(--bg);}
+.cw.grabbing{cursor:grabbing;}
+#canvas{position:absolute;transform-origin:0 0;}
+#svgl{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
+
+/* CARDS */
+.card{
+  position:absolute;width:var(--cw);
+  background:var(--bg2);
+  border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  cursor:pointer;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+  user-select:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.07);
+}
+.card:hover{border-color:var(--gold2);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.13);z-index:5;}
+.card.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(139,105,20,.15),0 8px 28px rgba(0,0,0,.13);z-index:20;}
+.card.dim{opacity:.15;}
+.cphoto{width:100%;height:96px;object-fit:cover;display:block;background:var(--bg3);}
+.cph{width:100%;height:96px;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--ink3);}
+.cbody{padding:10px 12px 11px;}
+.cname{font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.2;color:var(--ink);font-weight:700;}
+.csub{font-size:10px;color:var(--gold);letter-spacing:.03em;margin-top:2px;font-style:italic;}
+.cyr{font-size:10px;color:var(--ink3);margin-top:3px;}
+
+/* GEN BADGE */
+.gen-label{position:fixed;left:24px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);z-index:2;pointer-events:none;background:var(--bg2);padding:2px 8px;border-radius:4px;border:1px solid var(--border);}
+
+/* PANEL */
+#panel{position:fixed;right:0;top:0;bottom:0;width:310px;background:var(--bg2);border-left:1.5px solid var(--border);transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:50;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.08);}
+#panel.open{transform:translateX(0);}
+.phead{padding:20px 20px 16px;border-bottom:1px solid var(--border);position:relative;}
+.pclose{position:absolute;right:14px;top:14px;background:none;border:none;color:var(--ink3);font-size:22px;cursor:pointer;line-height:1;}
+.pclose:hover{color:var(--ink);}
+.pimg{width:100%;height:160px;object-fit:cover;border-radius:8px;margin-bottom:12px;background:var(--bg3);}
+.pimgph{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:8px;margin-bottom:12px;font-family:'Cormorant Garamond',serif;font-size:52px;color:var(--ink3);}
+.pname{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1.2;}
+.psub{font-size:12px;color:var(--gold);margin-top:3px;font-style:italic;}
+.pmeta{font-size:12px;color:var(--ink3);margin-top:5px;}
+.pbody{padding:16px 20px;display:flex;flex-direction:column;gap:14px;flex:1;}
+.lbl{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;display:block;}
+.val{font-size:13px;color:var(--ink);line-height:1.5;}
+.kins{display:flex;flex-direction:column;gap:6px;}
+.kin{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:7px;border:1px solid var(--border);cursor:pointer;transition:border-color .2s,background .2s;}
+.kin:hover{border-color:var(--gold2);background:var(--gold3);}
+.kav{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg4);}
+.kavph{width:32px;height:32px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink3);flex-shrink:0;}
+.kname{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.krole{font-size:10px;color:var(--ink3);letter-spacing:.06em;}
+.hdiv{border:none;border-top:1px solid var(--border);}
+
+/* ZOOM */
+.zc{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;overflow:hidden;z-index:40;box-shadow:0 2px 12px rgba(0,0,0,.1);}
+.zb{padding:8px 14px;background:none;border:none;color:var(--ink2);cursor:pointer;font-size:16px;transition:all .15s;}
+.zb:hover{background:var(--bg3);color:var(--gold);}
+.zl{padding:8px 10px;font-size:11px;color:var(--ink3);min-width:50px;text-align:center;line-height:2.2;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:500;}
+.spin{width:34px;height:34px;border:2.5px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stxt{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);}
+
+/* TOAST */
+#toast{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);background:var(--ink);color:#FDF9F0;padding:9px 22px;border-radius:6px;font-size:12px;letter-spacing:.08em;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <div class="li">🌿</div>
+  <div class="lh">Семейное Дерево</div>
+  <div class="ls">Авдюховы · Модовы</div>
+  <div class="lw">
+    <input type="password" id="pwd" placeholder="Пароль" onkeydown="if(event.key==='Enter')unlock()">
+    <button class="leye" onclick="toggleEye()">👁</button>
+  </div>
+  <button class="lbtn" onclick="unlock()">Войти</button>
+  <div class="lerr" id="lerr"></div>
+</div>
+
+<div id="loading" style="display:none">
+  <div class="spin"></div>
+  <div class="stxt">Загрузка…</div>
+</div>
+
+<div id="app">
+  <div class="hdr">
+    <div>
+      <div class="htitle">🌿 Авдюховы · Модовы</div>
+      <div class="hsub">Семейное древо</div>
+    </div>
+    <div class="hr">
+      <div class="sw"><span class="sic">🔍</span><input id="search" type="text" placeholder="Поиск…" oninput="doSearch(this.value)"></div>
+      <button class="btn" onclick="loadData()">↺ Обновить</button>
+      <button class="btn" onclick="resetView()">⌂</button>
+    </div>
+  </div>
+  <div class="cw" id="wrap">
+    <div id="canvas"><svg id="svgl"></svg></div>
+  </div>
+  <div class="zc">
+    <button class="zb" onclick="zoom(-0.12)">−</button>
+    <div class="zl" id="zlbl">70%</div>
+    <button class="zb" onclick="zoom(0.12)">+</button>
+  </div>
+</div>
+
+<div id="panel">
+  <div class="phead">
+    <button class="pclose" onclick="closePanel()">×</button>
+    <div id="pp"></div>
+    <div class="pname" id="pn"></div>
+    <div class="psub"  id="ps"></div>
+    <div class="pmeta" id="pm"></div>
+  </div>
+  <div class="pbody">
+    <div id="pnw" style="display:none"><span class="lbl">Заметки</span><div class="val" id="pnotes"></div></div>
+    <hr class="hdiv">
+    <div><span class="lbl">Родственники</span><div class="kins" id="pkin"></div></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const PASSWORD = 'Timur1901';
+const SHEET_ID = '1ztoYiTydy3WX-yJOr3FUPS_oSBmqEqDoxXqzfMcSBiY';
+
+// CSV читаем через gviz — работает без CORS для опубликованных таблиц
+// Лист должен называться «Семья»
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=%D0%A1%D0%B5%D0%BC%D1%8C%D1%8F`;
+
+// ── ВСТРОЕННЫЕ ДАННЫЕ (резерв) ─────────────────────────────
+const FALLBACK = [
+  // id, name, maiden, yr, died, city, photo, notes, fid, mid
+  ["va",  "Владимир Авдюхов",    "",              "",     "","",           "","","",""],
+  ["na",  "Нина Авдюхова",       "Щербинина",     "",     "","",           "","","",""],
+  ["vb",  "Виктор Борисов",      "",              "",     "","",           "","","",""],
+  ["ms",  "Маргарита Борисова",  "Сафина",        "",     "","",           "","","",""],
+  ["bp",  "Борис Паулин",        "",              "",     "","",           "","","",""],
+  ["np",  "Наталья Паулина",     "неизвестна",    "",     "","",           "","","",""],
+  ["da",  "Дмитрий Авдюхов",     "",              "",     "","Н.Новгород", "","","va","na"],
+  ["aa",  "Алексей Авдюхов",     "",              "",     "","",           "","","va","na"],
+  ["eb",  "Елена Авдюхова",      "Борисова",      "1969", "","Н.Новгород", "","","vb","ms"],
+  ["vvb", "Владимир Борисов",    "",              "",     "","",           "","","vb","ms"],
+  ["mb",  "Маша Борисова",       "неизвестна",    "",     "","",           "","","",""],
+  ["ep",  "Эльвира Модова",      "Паулина",       "1963", "","",           "","","bp","np"],
+  ["vp",  "Владимир Паулин",     "",              "",     "","",           "","","bp","np"],
+  ["sm",  "Сергей Модов",        "",              "",     "","Пермь",      "","","",""],
+  ["sa",  "Александр Авдюхов",   "",              "1991", "","Н.Новгород", "","","da","eb"],
+  ["dm",  "Дарья Авдюхова",      "Модова",        "1989", "","Пермь",      "","","sm","ep"],
+  ["mm",  "Михаил Модов",        "",              "1989", "","",           "","","sm","ep"],
+  ["ab",  "Аня Борисова",        "",              "",     "","",           "","","vvb","mb"],
+  ["kb",  "Катя Борисова",       "",              "",     "","",           "","","vvb","mb"],
+  ["dp",  "Дима Паулин",         "",              "",     "","",           "","","vp",""],
+  ["tr",  "Тристан",             "",              "",     "","Франция",    "","","",""],
+  ["tim", "Тимур Авдюхов",       "",              "2023", "","Н.Новгород", "","Сын Александра и Дарьи ✦","sa","dm"],
+  ["le",  "Лея",                 "",              "",     "","Франция",    "","","tr","ab"],
+  ["vi",  "Вика",                "",              "",     "","Франция",    "","","tr","ab"],
+];
+const FALLBACK_MARRIAGES = [
+  ["va","na"],["vb","ms"],["bp","np"],
+  ["da","eb"],["vvb","mb"],["sm","ep"],
+  ["sa","dm"],["ab","tr"],
+];
+
+// ── STATE ──────────────────────────────────────────────────
+let people=[], marriages=[];
+let selId=null;
+let scale=0.7, panX=60, panY=40;
+const CW=170, CH=152;
+
+// ── LOCK ───────────────────────────────────────────────────
+function unlock(){
+  const v=document.getElementById('pwd').value;
+  if(v===PASSWORD){
+    document.getElementById('lock').style.display='none';
+    document.getElementById('loading').style.display='flex';
+    document.getElementById('app').style.display='flex';
+    loadData();
+  } else {
+    const e=document.getElementById('lerr');
+    e.textContent='Неверный пароль';
+    setTimeout(()=>e.textContent='',2500);
+    const i=document.getElementById('pwd');
+    i.style.borderColor='#8B2020';
+    setTimeout(()=>i.style.borderColor='',1000);
+  }
+}
+function toggleEye(){const i=document.getElementById('pwd');i.type=i.type==='password'?'text':'password';}
+
+// ── LOAD ───────────────────────────────────────────────────
+async function loadData(){
+  document.getElementById('loading').style.display='flex';
+  let loaded=false;
+  try{
+    const r=await fetch(CSV_URL);
+    if(!r.ok)throw new Error();
+    const csv=await r.text();
+    const rows=parseCSV(csv);
+    if(rows&&rows.length>1){
+      buildFromCSV(rows);
+      loaded=true;
+      toast('Загружено из таблицы ✦');
+    }
+  }catch(e){}
+  if(!loaded){
+    buildFallback();
+    toast('Таблица недоступна — загружены встроенные данные');
+  }
+  layout();
+  document.getElementById('loading').style.display='none';
+  render();
+}
+
+function parseCSV(csv){
+  const rows=[];let row=[],cur='',inQ=false;
+  for(let i=0;i<csv.length;i++){
+    const c=csv[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){row.push(cur.replace(/^"|"$/g,'').replace(/""/g,'"').trim());cur='';}
+    else if((c==='\n'||c==='\r')&&!inQ){
+      row.push(cur.replace(/^"|"$/g,'').replace(/""/g,'"').trim());cur='';
+      if(row.some(x=>x))rows.push([...row]);row=[];
+    }else cur+=c;
+  }
+  row.push(cur.replace(/^"|"$/g,'').trim());
+  if(row.some(x=>x))rows.push(row);
+  return rows;
+}
+
+function buildFromCSV(rows){
+  const h=rows[0];
+  const c=name=>h.findIndex(x=>x.trim()===name||x.trim().toLowerCase()===name.toLowerCase());
+  const iId=c('ID'), iName=c('Имя'), iSub=c('Девичья / до замужества')||c('Девичья'),
+        iYr=c('Год рождения'), iDied=c('Год смерти'), iCity=c('Город'),
+        iPhoto=c('Ссылка на фото')||c('Фото'), iNotes=c('Заметки'),
+        iFid=c('ID Отца'), iMid=c('ID Матери');
+  people=rows.slice(1).filter(r=>(r[iId]||'').trim()).map(r=>{
+    const fid=(r[iFid]||'').trim(), mid=(r[iMid]||'').trim();
+    return{
+      id:(r[iId]||'').trim(), name:(r[iName]||'').trim(),
+      sub:(r[iSub]||'').trim(), yr:(r[iYr]||'').trim(),
+      died:(r[iDied]||'').trim(), city:(r[iCity]||'').trim(),
+      photo:(r[iPhoto]||'').trim(), notes:(r[iNotes]||'').trim(),
+      fid, mid, pid:[fid,mid].filter(Boolean).join(';'),
+    };
+  });
+  // Браки — выводим из данных (пары у которых есть общие дети)
+  marriages=inferMarriages(people);
+}
+
+function buildFallback(){
+  people=FALLBACK.map(r=>({
+    id:r[0],name:r[1],sub:r[2],yr:r[3],died:r[4],city:r[5],
+    photo:r[6],notes:r[7],fid:r[8],mid:r[9],
+    pid:[r[8],r[9]].filter(Boolean).join(';'),
+  }));
+  marriages=FALLBACK_MARRIAGES.map(r=>({a:r[0],b:r[1]}));
+}
+
+// Вычисляем пары супругов из общих детей
+function inferMarriages(people){
+  const pairs=new Map();
+  people.forEach(p=>{
+    const f=p.fid, m=p.mid;
+    if(!f||!m)return;
+    const key=[f,m].sort().join('|');
+    if(!pairs.has(key))pairs.set(key,{a:f,b:m});
+  });
+  return [...pairs.values()];
+}
+
+// ── LAYOUT ─────────────────────────────────────────────────
+function layout(){
+  const cm={};people.forEach(p=>cm[p.id]=[]);
+  people.forEach(p=>{
+    if(p.fid&&cm[p.fid])cm[p.fid].push(p.id);
+    if(p.mid&&cm[p.mid])cm[p.mid].push(p.id);
+  });
+  const ids=new Set(people.map(p=>p.id));
+  const roots=people.filter(p=>!p.fid&&!p.mid||(p.fid&&!ids.has(p.fid)&&p.mid&&!ids.has(p.mid))||(p.fid&&!ids.has(p.fid)&&!p.mid)||(!p.fid&&p.mid&&!ids.has(p.mid))||(!p.fid&&!p.mid)).map(p=>p.id);
+
+  const depth={};const q=[...new Set(roots)].map(r=>({id:r,d:0}));const vis=new Set();
+  while(q.length){const {id,d}=q.shift();if(vis.has(id))continue;vis.add(id);depth[id]=d;(cm[id]||[]).forEach(c=>q.push({id:c,d:d+1}));}
+  people.forEach(p=>{if(depth[p.id]===undefined)depth[p.id]=0;});
+
+  const maxD=Math.max(...Object.values(depth));
+  const byD={};for(let d=0;d<=maxD;d++)byD[d]=[];
+  people.forEach(p=>byD[depth[p.id]].push(p.id));
+
+  const HG=50, VG=100;
+  const posMap={};
+  // Первый проход — расставляем по горизонтали
+  for(let d=0;d<=maxD;d++)byD[d].forEach((id,i)=>posMap[id]={x:i*(CW+HG),y:d*(CH+VG)});
+  // Центрируем над детьми
+  for(let d=maxD-1;d>=0;d--){
+    byD[d].forEach(id=>{
+      const ch=cm[id]||[];if(!ch.length)return;
+      const xs=ch.map(c=>posMap[c]?posMap[c].x:0);
+      posMap[id]={...posMap[id],x:xs.reduce((a,b)=>a+b,0)/xs.length};
+    });
+  }
+  people.forEach(p=>{const pos=posMap[p.id]||{x:0,y:0};p.x=Math.round(pos.x);p.y=Math.round(pos.y);});
+}
+
+// ── RENDER ─────────────────────────────────────────────────
+function render(){
+  const canvas=document.getElementById('canvas');
+  canvas.querySelectorAll('.card,.gen-label').forEach(e=>e.remove());
+  drawSVG();
+  people.forEach(p=>makeCard(p));
+  applyT();
+}
+
+function gdrive(url){
+  if(!url)return'';
+  const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(m)return`https://drive.google.com/uc?export=view&id=${m[1]}`;
+  return url;
+}
+function ini(name){return(name||'').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();}
+
+function makeCard(p){
+  const canvas=document.getElementById('canvas');
+  const el=document.createElement('div');
+  el.className='card'+(p.id===selId?' sel':'');
+  el.id='c-'+p.id;
+  el.style.left=p.x+'px';
+  el.style.top=p.y+'px';
+  const iv=ini(p.name);
+  const src=gdrive(p.photo);
+  const yrStr=p.yr?(p.died?p.yr+'–'+p.died:'р. '+p.yr):'';
+  el.innerHTML=(src
+    ?`<img class="cphoto" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="cph" style="display:none">${iv}</div>`
+    :`<div class="cph">${iv}</div>`)
+    +`<div class="cbody">
+        <div class="cname">${p.name}</div>
+        ${p.sub?`<div class="csub">${p.sub}</div>`:''}
+        ${yrStr||p.city?`<div class="cyr">${[yrStr,p.city].filter(Boolean).join(' · ')}</div>`:''}
+      </div>`;
+  el.addEventListener('click',()=>selectP(p.id));
+  dragCard(el,p);
+  canvas.appendChild(el);
+}
+
+function drawSVG(){
+  const svg=document.getElementById('svgl');svg.innerHTML='';
+  const pm={};people.forEach(p=>pm[p.id]=p);
+  const drawn=new Set();
+  // Линии родитель→ребёнок
+  people.forEach(p=>{
+    [p.fid,p.mid].filter(Boolean).forEach(pid=>{
+      const par=pm[pid];if(!par)return;
+      const key=pid+'>'+p.id;if(drawn.has(key))return;drawn.add(key);
+      const x1=par.x+CW/2,y1=par.y+CH,x2=p.x+CW/2,y2=p.y,my=(y1+y2)/2;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke','rgba(139,105,20,0.35)');
+      path.setAttribute('stroke-width','1.8');
+      svg.appendChild(path);
+    });
+  });
+  // Линии супругов
+  marriages.forEach(m=>{
+    const pa=pm[m.a],pb=pm[m.b];if(!pa||!pb)return;
+    const key=[m.a,m.b].sort().join('=');if(drawn.has(key))return;drawn.add(key);
+    const L=pa.x<pb.x?pa:pb,R=pa.x<pb.x?pb:pa;
+    const x1=L.x+CW,y1=L.y+CH*0.4,x2=R.x,y2=R.y+CH*0.4;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+    line.setAttribute('stroke','rgba(139,105,20,0.5)');
+    line.setAttribute('stroke-width','1.8');
+    line.setAttribute('stroke-dasharray','7,4');
+    svg.appendChild(line);
+    // Сердечко посередине
+    const mx=(x1+x2)/2,my2=(y1+y2)/2;
+    const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',mx);txt.setAttribute('y',my2+5);
+    txt.setAttribute('text-anchor','middle');txt.setAttribute('font-size','12');
+    txt.setAttribute('fill','rgba(139,105,20,0.6)');
+    txt.textContent='♥';
+    svg.appendChild(txt);
+  });
+}
+
+// ── PANEL ──────────────────────────────────────────────────
+function selectP(id){
+  selId=id;
+  document.querySelectorAll('.card').forEach(el=>el.classList.toggle('sel',el.id==='c-'+id));
+  openPanel(id);
+}
+function openPanel(id){
+  const p=people.find(x=>x.id===id);if(!p)return;
+  const iv=ini(p.name),src=gdrive(p.photo);
+  document.getElementById('pp').innerHTML=src
+    ?`<img class="pimg" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="pimgph" style="display:none">${iv}</div>`
+    :`<div class="pimgph">${iv}</div>`;
+  document.getElementById('pn').textContent=p.name;
+  document.getElementById('ps').textContent=p.sub?`урождённая ${p.sub}`:'';
+  const yrStr=p.yr?(p.died?p.yr+'–'+p.died:'р. '+p.yr):'';
+  document.getElementById('pm').textContent=[yrStr,p.city].filter(Boolean).join(' · ');
+  const nw=document.getElementById('pnw');
+  if(p.notes){nw.style.display='block';document.getElementById('pnotes').textContent=p.notes;}
+  else nw.style.display='none';
+
+  const pm2={};people.forEach(x=>pm2[x.id]=x);
+  const kl=document.getElementById('pkin');kl.innerHTML='';
+  const addKin=(person,role)=>{
+    if(!person)return;
+    const iv2=ini(person.name),src2=gdrive(person.photo);
+    const d=document.createElement('div');d.className='kin';
+    d.innerHTML=(src2?`<img class="kav" src="${src2}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="kavph" style="display:none">${iv2}</div>`:`<div class="kavph">${iv2}</div>`)
+      +`<div style="min-width:0"><div class="kname">${person.name}</div><div class="krole">${role}</div></div>`;
+    d.onclick=()=>{selectP(person.id);goTo(person.id);};
+    kl.appendChild(d);
+  };
+  if(p.fid)addKin(pm2[p.fid],'Отец');
+  if(p.mid)addKin(pm2[p.mid],'Мать');
+  people.filter(x=>(x.fid===p.id||x.mid===p.id)).forEach(c=>addKin(c,'Ребёнок'));
+  marriages.forEach(m=>{
+    if(m.a===p.id&&pm2[m.b])addKin(pm2[m.b],'Супруг(а)');
+    if(m.b===p.id&&pm2[m.a])addKin(pm2[m.a],'Супруг(а)');
+  });
+  // Братья/сёстры
+  people.filter(x=>x.id!==p.id&&((p.fid&&x.fid===p.fid)||(p.mid&&x.mid===p.mid))).forEach(s=>addKin(s,'Брат/Сестра'));
+  if(!kl.children.length)kl.innerHTML='<div style="font-size:12px;color:var(--ink3)">Нет данных</div>';
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');selId=null;
+  document.querySelectorAll('.card').forEach(el=>el.classList.remove('sel'));
+}
+function goTo(id){
+  const p=people.find(x=>x.id===id);if(!p)return;
+  const w=document.getElementById('wrap');
+  panX=w.clientWidth/2-(p.x+CW/2)*scale;panY=w.clientHeight/2-(p.y+CH/2)*scale;applyT();
+}
+function doSearch(q){
+  q=q.toLowerCase().trim();
+  document.querySelectorAll('.card').forEach(el=>{
+    const id=el.id.replace('c-','');
+    const p=people.find(x=>x.id===id);if(!p)return;
+    el.classList.toggle('dim',!!q&&!p.name.toLowerCase().includes(q)&&!(p.sub||'').toLowerCase().includes(q));
+  });
+}
+
+// ── DRAG ───────────────────────────────────────────────────
+function dragCard(el,p){
+  let dn=false,sx=0,sy=0,ox=0,oy=0;
+  el.addEventListener('mousedown',e=>{if(e.button!==0)return;dn=true;sx=e.clientX;sy=e.clientY;ox=p.x;oy=p.y;e.stopPropagation();});
+  window.addEventListener('mousemove',e=>{if(!dn)return;p.x=Math.round(ox+(e.clientX-sx)/scale);p.y=Math.round(oy+(e.clientY-sy)/scale);el.style.left=p.x+'px';el.style.top=p.y+'px';drawSVG();});
+  window.addEventListener('mouseup',()=>{dn=false;});
+}
+
+// ── PAN & ZOOM ─────────────────────────────────────────────
+(()=>{
+  const w=document.getElementById('wrap');
+  let pn=false,sx=0,sy=0,opx=0,opy=0;
+  w.addEventListener('mousedown',e=>{if(e.target.closest('.card'))return;pn=true;sx=e.clientX;sy=e.clientY;opx=panX;opy=panY;w.classList.add('grabbing');});
+  window.addEventListener('mousemove',e=>{if(!pn)return;panX=opx+(e.clientX-sx);panY=opy+(e.clientY-sy);applyT();});
+  window.addEventListener('mouseup',()=>{pn=false;w.classList.remove('grabbing');});
+  w.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?-0.1:0.1);},{passive:false});
+  let t0=null;
+  w.addEventListener('touchstart',e=>{if(e.touches.length===1)t0={x:e.touches[0].clientX,y:e.touches[0].clientY,px:panX,py:panY};});
+  w.addEventListener('touchmove',e=>{e.preventDefault();if(t0&&e.touches.length===1){panX=t0.px+(e.touches[0].clientX-t0.x);panY=t0.py+(e.touches[0].clientY-t0.y);applyT();}},{passive:false});
+})();
+function zoom(d){scale=Math.max(0.12,Math.min(3,scale+d));applyT();}
+function resetView(){scale=0.7;panX=60;panY=40;applyT();}
+function applyT(){
+  document.getElementById('canvas').style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  document.getElementById('zlbl').textContent=Math.round(scale*100)+'%';
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',3500);
+}
+document.getElementById('wrap').addEventListener('click',e=>{if(!e.target.closest('.card')&&selId)closePanel();});
+</script>
+</body>
+</html>
