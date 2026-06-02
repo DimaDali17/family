@@ -467,8 +467,19 @@ function drawSVG(){
   const svg=document.getElementById('svgl');svg.innerHTML='';
   const pm={};people.forEach(p=>pm[p.id]=p);
   const drawn=new Set();
-
-  // Линии супругов
+  people.forEach(p=>{
+    [p.fid,p.mid].filter(Boolean).forEach(pid=>{
+      const par=pm[pid];if(!par)return;
+      const key=pid+'>'+p.id;if(drawn.has(key))return;drawn.add(key);
+      const x1=par.x+CW/2,y1=par.y+CH,x2=p.x+CW/2,y2=p.y,my=(y1+y2)/2;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke','rgba(139,105,20,0.28)');
+      path.setAttribute('stroke-width','1.8');
+      svg.appendChild(path);
+    });
+  });
   marriages.forEach(m=>{
     const pa=pm[m.a],pb=pm[m.b];if(!pa||!pb)return;
     const key=[m.a,m.b].sort().join('=');if(drawn.has(key))return;drawn.add(key);
@@ -481,97 +492,12 @@ function drawSVG(){
     line.setAttribute('stroke-width','1.8');
     line.setAttribute('stroke-dasharray','6,4');
     svg.appendChild(line);
-    const mx=(x1+x2)/2,my2=(y1+y2)/2;
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
     const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('x',mx);t.setAttribute('y',my2+5);
+    t.setAttribute('x',mx);t.setAttribute('y',my+5);
     t.setAttribute('text-anchor','middle');t.setAttribute('font-size','12');
     t.setAttribute('fill','rgba(139,105,20,0.45)');t.textContent='♥';
     svg.appendChild(t);
-  });
-
-  // Линии родитель→ребёнок со слиянием
-  // Группируем детей по паре родителей
-  const familyMap=new Map(); // "fid|mid" -> [children]
-  const singleParent=[]; // дети с одним родителем
-
-  people.forEach(p=>{
-    const f=p.fid&&pm[p.fid]?p.fid:null;
-    const m=p.mid&&pm[p.mid]?p.mid:null;
-    if(f&&m){
-      const key=[f,m].sort().join('|');
-      if(!familyMap.has(key))familyMap.set(key,{fid:f,mid:m,children:[]});
-      familyMap.get(key).children.push(p.id);
-    } else if(f||m){
-      singleParent.push({pid:f||m, cid:p.id});
-    }
-  });
-
-  // Рисуем семьи: два родителя → точка слияния → дети
-  familyMap.forEach(({fid,mid,children})=>{
-    const pf=pm[fid],pm2=pm[mid];
-    if(!pf||!pm2)return;
-
-    // Точка слияния — середина между двумя родителями, чуть ниже
-    const jx=(pf.x+CW/2+pm2.x+CW/2)/2;
-    const jy=Math.max(pf.y,pm2.y)+CH+VGAP*0.45;
-
-    // Линия от каждого родителя до точки слияния
-    [pf,pm2].forEach(par=>{
-      const x1=par.x+CW/2, y1=par.y+CH;
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',`M${x1},${y1} C${x1},${jy} ${jx},${jy} ${jx},${jy}`);
-      path.setAttribute('fill','none');
-      path.setAttribute('stroke','rgba(139,105,20,0.28)');
-      path.setAttribute('stroke-width','1.8');
-      svg.appendChild(path);
-    });
-
-    // Горизонтальная планка над детьми (если детей > 1)
-    const childXs=children.map(cid=>pm[cid]?pm[cid].x+CW/2:jx);
-    const barY=jy+10;
-
-    if(children.length>1){
-      const barX1=Math.min(...childXs);
-      const barX2=Math.max(...childXs);
-      const bar=document.createElementNS('http://www.w3.org/2000/svg','line');
-      bar.setAttribute('x1',barX1);bar.setAttribute('y1',barY);
-      bar.setAttribute('x2',barX2);bar.setAttribute('y2',barY);
-      bar.setAttribute('stroke','rgba(139,105,20,0.28)');
-      bar.setAttribute('stroke-width','1.8');
-      svg.appendChild(bar);
-      // Вертикаль от точки слияния до планки
-      const vert=document.createElementNS('http://www.w3.org/2000/svg','line');
-      vert.setAttribute('x1',jx);vert.setAttribute('y1',jy);
-      vert.setAttribute('x2',jx);vert.setAttribute('y2',barY);
-      vert.setAttribute('stroke','rgba(139,105,20,0.28)');
-      vert.setAttribute('stroke-width','1.8');
-      svg.appendChild(vert);
-    }
-
-    // От планки вниз к каждому ребёнку
-    children.forEach(cid=>{
-      const child=pm[cid];if(!child)return;
-      const cx=child.x+CW/2, cy=child.y;
-      const startY=children.length>1?barY:jy;
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',`M${cx},${startY} L${cx},${cy}`);
-      path.setAttribute('fill','none');
-      path.setAttribute('stroke','rgba(139,105,20,0.28)');
-      path.setAttribute('stroke-width','1.8');
-      svg.appendChild(path);
-    });
-  });
-
-  // Одиночный родитель → ребёнок
-  singleParent.forEach(({pid,cid})=>{
-    const par=pm[pid],child=pm[cid];if(!par||!child)return;
-    const x1=par.x+CW/2,y1=par.y+CH,x2=child.x+CW/2,y2=child.y,my=(y1+y2)/2;
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
-    path.setAttribute('fill','none');
-    path.setAttribute('stroke','rgba(139,105,20,0.28)');
-    path.setAttribute('stroke-width','1.8');
-    svg.appendChild(path);
   });
 }
 
