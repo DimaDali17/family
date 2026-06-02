@@ -10,64 +10,48 @@
   --bg:#F2EDE3;--bg2:#FAF7F0;--bg3:#EAE4D6;--bg4:#DDD6C5;
   --ink:#2C2416;--ink2:#6B5D4A;--ink3:#9E8E78;
   --gold:#8B6914;--gold2:#C9A96E;--gold3:#F0E0B8;
-  --red:#8B2020;
-  --border:#D4C9B0;--border2:#B8A880;
-  --cw:164px; --ch:150px;
+  --red:#8B2020;--border:#D4C9B0;--border2:#B8A880;
+  --cw:164px;--ch:150px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 
-/* LOCK */
 #lock{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:20px;padding:24px;}
 .li{font-size:40px;animation:pulse 3s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 .lh{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;letter-spacing:.05em;color:var(--ink);text-align:center;}
 .ls{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink3);margin-top:-12px;}
 .lw{position:relative;width:100%;max-width:280px;}
-.lw input{width:100%;padding:14px 46px 14px 18px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:8px;color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color .2s;}
+.lw input{width:100%;padding:14px 46px 14px 18px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:8px;color:var(--ink);font-size:15px;outline:none;transition:border-color .2s;}
 .lw input:focus{border-color:var(--gold);}
 .leye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);font-size:17px;}
-.lbtn{width:100%;max-width:280px;padding:14px;background:var(--ink);border:none;border-radius:8px;color:#FDF9F0;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.lbtn{width:100%;max-width:280px;padding:14px;background:var(--ink);border:none;border-radius:8px;color:#FDF9F0;font-size:13px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
 .lbtn:hover{background:var(--gold);}
 .lerr{font-size:12px;color:var(--red);height:16px;}
 
-/* APP */
 #app{display:none;width:100%;height:100%;flex-direction:column;}
-
-/* HEADER */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;gap:8px;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
 .htitle{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--ink);white-space:nowrap;}
 .hsub{font-size:10px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;}
 .hr{display:flex;gap:6px;align-items:center;flex-shrink:0;}
-.btn{padding:7px 12px;border-radius:6px;font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .18s;border:1.5px solid var(--border2);background:var(--bg2);color:var(--ink2);white-space:nowrap;}
+.btn{padding:7px 12px;border-radius:6px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .18s;border:1.5px solid var(--border2);background:var(--bg2);color:var(--ink2);white-space:nowrap;}
 .btn:hover{background:var(--bg3);border-color:var(--gold);color:var(--gold);}
-.sw{position:relative;display:none;}
-@media(min-width:600px){.sw{display:block;}}
-.sw input{padding:7px 14px 7px 30px;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;color:var(--ink);font-family:'Inter',sans-serif;font-size:12px;width:160px;outline:none;transition:border-color .2s;}
+.sw{position:relative;}
+@media(max-width:500px){.sw{display:none;}}
+.sw input{padding:7px 14px 7px 30px;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;color:var(--ink);font-size:12px;width:160px;outline:none;transition:border-color .2s;}
 .sw input:focus{border-color:var(--gold);}
 .sic{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:12px;pointer-events:none;}
 
-/* CANVAS */
 .cw{flex:1;overflow:hidden;position:relative;cursor:grab;touch-action:none;}
 .cw.grabbing{cursor:grabbing;}
 #canvas{position:absolute;transform-origin:0 0;}
 #svgl{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
 
-/* GEN ROWS — метки поколений */
-.gen-row{position:absolute;left:0;display:flex;align-items:center;gap:6px;pointer-events:none;}
-.gen-line{flex:1;height:1px;background:var(--border);opacity:.5;}
-.gen-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);padding:2px 7px;border-radius:3px;border:1px solid var(--border);white-space:nowrap;}
+/* gen labels */
+.glabel{position:absolute;left:-60px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);pointer-events:none;white-space:nowrap;transform:translateY(50%);}
 
-/* CARDS */
-.card{
-  position:absolute;width:var(--cw);
-  background:var(--bg2);border:1.5px solid var(--border);
-  border-radius:10px;overflow:hidden;cursor:pointer;
-  transition:border-color .2s,transform .18s,box-shadow .2s;
-  user-select:none;
-  box-shadow:0 2px 8px rgba(0,0,0,.07);
-}
+.card{position:absolute;width:var(--cw);background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .18s,box-shadow .2s;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,.07);}
 .card:hover{border-color:var(--gold2);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.12);z-index:5;}
 .card.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(139,105,20,.18),0 6px 22px rgba(0,0,0,.12);z-index:20;}
 .card.dim{opacity:.14;}
@@ -78,12 +62,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 .csub{font-size:10px;color:var(--gold);letter-spacing:.02em;margin-top:1px;font-style:italic;}
 .cyr{font-size:10px;color:var(--ink3);margin-top:2px;}
 
-/* PANEL */
 #panel{position:fixed;right:0;top:0;bottom:0;width:min(300px,100vw);background:var(--bg2);border-left:1.5px solid var(--border);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:100;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.1);}
 #panel.open{transform:translateX(0);}
 .phead{padding:18px 18px 14px;border-bottom:1px solid var(--border);position:relative;}
-.pclose{position:absolute;right:12px;top:12px;background:none;border:none;color:var(--ink3);font-size:24px;cursor:pointer;line-height:1;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
-.pclose:hover{background:var(--bg3);color:var(--ink);}
+.pclose{position:absolute;right:12px;top:12px;background:none;border:none;color:var(--ink3);font-size:24px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+.pclose:hover{background:var(--bg3);}
 .pimg{width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;background:var(--bg3);}
 .pimgph{width:100%;height:110px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:8px;margin-bottom:10px;font-family:'Cormorant Garamond',serif;font-size:48px;color:var(--ink3);}
 .pname{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--ink);line-height:1.2;}
@@ -101,24 +84,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 .krole{font-size:10px;color:var(--ink3);}
 .hdiv{border:none;border-top:1px solid var(--border);}
 
-/* ZOOM */
 .zc{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;overflow:hidden;z-index:40;box-shadow:0 2px 12px rgba(0,0,0,.1);}
 .zb{padding:8px 14px;background:none;border:none;color:var(--ink2);cursor:pointer;font-size:16px;transition:all .15s;}
 .zb:hover{background:var(--bg3);color:var(--gold);}
 .zl{padding:8px 10px;font-size:11px;color:var(--ink3);min-width:50px;text-align:center;line-height:2.2;border-left:1px solid var(--border);border-right:1px solid var(--border);}
 
-/* LOADING */
 #loading{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:500;}
 .spin{width:32px;height:32px;border:2.5px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .stxt{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);}
 
-/* TOAST */
-#toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--ink);color:#FDF9F0;padding:8px 20px;border-radius:6px;font-size:12px;letter-spacing:.06em;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;}
+#toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--ink);color:#FDF9F0;padding:8px 20px;border-radius:6px;font-size:12px;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;}
 </style>
 </head>
 <body>
-
 <div id="lock">
   <div class="li">🌿</div>
   <div class="lh">Семейное Дерево</div>
@@ -130,40 +109,29 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
   <button class="lbtn" onclick="unlock()">Войти</button>
   <div class="lerr" id="lerr"></div>
 </div>
-
-<div id="loading" style="display:none">
-  <div class="spin"></div>
-  <div class="stxt">Загрузка…</div>
-</div>
-
+<div id="loading" style="display:none"><div class="spin"></div><div class="stxt">Загрузка…</div></div>
 <div id="app">
   <div class="hdr">
-    <div>
-      <div class="htitle">🌿 Авдюховы · Модовы</div>
-      <div class="hsub">Семейное древо</div>
-    </div>
+    <div><div class="htitle">🌿 Авдюховы · Модовы</div><div class="hsub">Семейное древо</div></div>
     <div class="hr">
       <div class="sw"><span class="sic">🔍</span><input id="search" type="text" placeholder="Поиск…" oninput="doSearch(this.value)"></div>
-      <button class="btn" onclick="loadData()">↺</button>
+      <button class="btn" onclick="loadData()">↺ Обновить</button>
       <button class="btn" onclick="resetView()">⌂</button>
     </div>
   </div>
-  <div class="cw" id="wrap">
-    <div id="canvas"><svg id="svgl"></svg></div>
-  </div>
+  <div class="cw" id="wrap"><div id="canvas"><svg id="svgl"></svg></div></div>
   <div class="zc">
     <button class="zb" onclick="zoom(-0.12)">−</button>
-    <div class="zl" id="zlbl">70%</div>
+    <div class="zl" id="zlbl">80%</div>
     <button class="zb" onclick="zoom(0.12)">+</button>
   </div>
 </div>
-
 <div id="panel">
   <div class="phead">
     <button class="pclose" onclick="closePanel()">×</button>
     <div id="pp"></div>
     <div class="pname" id="pn"></div>
-    <div class="psub"  id="ps"></div>
+    <div class="psub" id="ps"></div>
     <div class="pmeta" id="pm"></div>
   </div>
   <div class="pbody">
@@ -177,44 +145,42 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 <script>
 const PASSWORD = 'Timur1901';
 const SHEET_ID = '1ztoYiTydy3WX-yJOr3FUPS_oSBmqEqDoxXqzfMcSBiY';
-const CSV_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=%D0%A1%D0%B5%D0%BC%D1%8C%D1%8F`;
+// Лист называется Semya (латиницей — надёжнее)
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Semya`;
 
-// ── ВСТРОЕННЫЕ ДАННЫЕ ──────────────────────────────────────
-// [id, name, maiden, yr, died, city, photo, notes, fid, mid]
-const FALLBACK = [
-  ["va",  "Владимир Авдюхов",   "",           "","","",           "","","",   ""],
-  ["na",  "Нина Авдюхова",      "Щербинина",  "","","",           "","","",   ""],
-  ["vb",  "Виктор Борисов",     "",           "","","",           "","","",   ""],
-  ["ms",  "Маргарита Борисова", "Сафина",     "","","",           "","","",   ""],
-  ["bp",  "Борис Паулин",       "",           "","","",           "","","",   ""],
-  ["np",  "Наталья Паулина",    "неизвестна", "","","",           "","","",   ""],
-  ["da",  "Дмитрий Авдюхов",    "",           "","","Н.Новгород", "","","va", "na"],
-  ["aa",  "Алексей Авдюхов",    "",           "","","",           "","","va", "na"],
-  ["eb",  "Елена Авдюхова",     "Борисова",   "1969","","Н.Новгород","","","vb","ms"],
-  ["vvb", "Владимир Борисов",   "",           "","","",           "","","vb", "ms"],
-  ["mb",  "Маша Борисова",      "неизвестна", "","","",           "","","",   ""],
-  ["ep",  "Эльвира Модова",     "Паулина",    "1963","","",       "","","bp", "np"],
-  ["vp",  "Владимир Паулин",    "",           "","","",           "","","bp", "np"],
-  ["sm",  "Сергей Модов",       "",           "","","Пермь",      "","","",   ""],
-  ["sa",  "Александр Авдюхов",  "",           "1991","","Н.Новгород","","","da","eb"],
-  ["dm",  "Дарья Авдюхова",     "Модова",     "1989","","Пермь",  "","","sm", "ep"],
-  ["mm",  "Михаил Модов",       "",           "1989","","",        "","","sm","ep"],
-  ["ab",  "Аня Борисова",       "",           "","","",           "","","vvb","mb"],
-  ["kb",  "Катя Борисова",      "",           "","","",           "","","vvb","mb"],
-  ["dp",  "Дима Паулин",        "",           "","","",           "","","vp", ""],
-  ["tr",  "Тристан",            "",           "","","Франция",    "","","",   ""],
-  ["tim", "Тимур Авдюхов",      "",           "2023","","Н.Новгород","","✦ Сын Александра и Дарьи","sa","dm"],
-  ["le",  "Лея",                "",           "","","Франция",    "","","tr", "ab"],
-  ["vi",  "Вика",               "",           "","","Франция",    "","","tr", "ab"],
+// ── FALLBACK данные ─────────────────────────────────────────
+// [id, name, maiden, yr, died, city, photo, notes, fid, mid, gen]
+const FB = [
+  ["va", "Владимир Авдюхов",   "",           "","","",            "","","","",  0],
+  ["na", "Нина Авдюхова",      "Щербинина",  "","","",            "","","","",  0],
+  ["vb", "Виктор Борисов",     "",           "","","",            "","","","",  0],
+  ["ms", "Маргарита Борисова", "Сафина",     "","","",            "","","","",  0],
+  ["bp", "Борис Паулин",       "",           "","","",            "","","","",  0],
+  ["np", "Наталья Паулина",    "неизвестна", "","","",            "","","","",  0],
+  ["da", "Дмитрий Авдюхов",   "",           "","","Н.Новгород",  "","","va","na",1],
+  ["aa", "Алексей Авдюхов",   "",           "","","",            "","","va","na",1],
+  ["eb", "Елена Авдюхова",    "Борисова",   "1969","","Н.Новгород","","","vb","ms",1],
+  ["vvb","Владимир Борисов",  "",           "","","",            "","","vb","ms",1],
+  ["mb", "Маша Борисова",     "неизвестна", "","","",            "","","","",   1],
+  ["ep", "Эльвира Модова",    "Паулина",    "1963","","",         "","","bp","np",1],
+  ["vp", "Владимир Паулин",   "",           "","","",            "","","bp","np",1],
+  ["sm", "Сергей Модов",      "",           "","","Пермь",       "","","","",   1],
+  ["sa", "Александр Авдюхов","",           "1991","","Н.Новгород","","","da","eb",2],
+  ["dm", "Дарья Авдюхова",   "Модова",     "1989","","Пермь",    "","","sm","ep",2],
+  ["mm", "Михаил Модов",     "",           "1989","","",          "","","sm","ep",2],
+  ["ab", "Аня Борисова",     "",           "","","",             "","","vvb","mb",2],
+  ["kb", "Катя Борисова",    "",           "","","",             "","","vvb","mb",2],
+  ["dp", "Дима Паулин",      "",           "","","",             "","","vp","",  2],
+  ["tr", "Тристан",          "",           "","","Франция",      "","","","",   2],
+  ["tim","Тимур Авдюхов",    "",           "2023","","Н.Новгород","","Сын Александра и Дарьи ✦","sa","dm",3],
+  ["le", "Лея",              "",           "","","Франция",      "","","tr","ab",3],
+  ["vi", "Вика",             "",           "","","Франция",      "","","tr","ab",3],
 ];
 
-// ── STATE ──────────────────────────────────────────────────
 let people=[], marriages=[];
 let selId=null;
-let scale=1, panX=0, panY=0;
-const CW=164, CH=150;
-// Отступы между карточками
-const HGAP=40, VGAP=90;
+let scale=0.8, panX=0, panY=0;
+const CW=164, CH=150, HGAP=44, VGAP=96;
 
 // ── LOCK ───────────────────────────────────────────────────
 function unlock(){
@@ -242,11 +208,19 @@ async function loadData(){
   try{
     const r=await fetch(CSV_URL);
     if(!r.ok)throw 0;
-    const csv=await r.text();
-    const rows=parseCSV(csv);
-    if(rows&&rows.length>1){buildFromCSV(rows);ok=true;toast('Загружено из таблицы ✦');}
+    const txt=await r.text();
+    // Проверяем что это не HTML ошибка
+    if(txt.trim().startsWith('<'))throw 0;
+    const rows=parseCSV(txt);
+    if(rows&&rows.length>1){
+      buildFromCSV(rows);
+      if(people.length>0){ok=true;toast('Данные загружены из таблицы ✦');}
+    }
   }catch(e){}
-  if(!ok){buildFallback();toast('Встроенные данные');}
+  if(!ok){
+    buildFallback();
+    toast('Таблица недоступна — встроенные данные');
+  }
   layout();
   document.getElementById('loading').style.display='none';
   render();
@@ -268,27 +242,40 @@ function parseCSV(csv){
   if(row.some(x=>x))rows.push(row);
   return rows;
 }
-function ci(h,name){return h.findIndex(x=>x.trim()===name||x.trim().toLowerCase()===name.toLowerCase());}
+
+function ci(h,name){
+  let i=h.findIndex(x=>x.trim()===name);
+  if(i<0)i=h.findIndex(x=>x.trim().toLowerCase()===name.toLowerCase());
+  return i;
+}
 
 function buildFromCSV(rows){
   const h=rows[0];
-  const iId=ci(h,'ID'),iName=ci(h,'Имя'),iSub=ci(h,'Девичья / до замужества'),
-        iYr=ci(h,'Год рождения'),iDied=ci(h,'Год смерти'),iCity=ci(h,'Город'),
-        iPhoto=ci(h,'Ссылка на фото'),iNotes=ci(h,'Заметки'),
-        iFid=ci(h,'ID Отца'),iMid=ci(h,'ID Матери');
+  const iId=ci(h,'ID'), iName=ci(h,'Имя'), iSub=ci(h,'Девичья фамилия'),
+        iYr=ci(h,'Год рождения'), iDied=ci(h,'Год смерти'), iCity=ci(h,'Город'),
+        iPhoto=ci(h,'Ссылка на фото'), iNotes=ci(h,'Заметки'),
+        iFid=ci(h,'ID Отца'), iMid=ci(h,'ID Матери'), iGen=ci(h,'Поколение (0,1,2…)');
   people=rows.slice(1).filter(r=>(r[iId]||'').trim()).map(r=>({
-    id:(r[iId]||'').trim(), name:(r[iName]||'').trim(),
-    sub:(r[iSub]||'').trim(), yr:(r[iYr]||'').trim(),
-    died:(r[iDied]||'').trim(), city:(r[iCity]||'').trim(),
-    photo:(r[iPhoto]||'').trim(), notes:(r[iNotes]||'').trim(),
-    fid:(r[iFid]||'').trim(), mid:(r[iMid]||'').trim(),
+    id:(r[iId]||'').trim(),
+    name:(r[iName]||'').trim()||'—',
+    sub:(r[iSub]||'').trim(),
+    yr:(r[iYr]||'').trim(),
+    died:(r[iDied]||'').trim(),
+    city:(r[iCity]||'').trim(),
+    photo:(r[iPhoto]||'').trim(),
+    notes:(r[iNotes]||'').trim(),
+    fid:(r[iFid]||'').trim(),
+    mid:(r[iMid]||'').trim(),
+    genHint: iGen>=0 ? parseInt(r[iGen]||'')||null : null,
   }));
   marriages=inferMarriages(people);
 }
+
 function buildFallback(){
-  people=FALLBACK.map(r=>({id:r[0],name:r[1],sub:r[2],yr:r[3],died:r[4],city:r[5],photo:r[6],notes:r[7],fid:r[8],mid:r[9]}));
+  people=FB.map(r=>({id:r[0],name:r[1],sub:r[2],yr:r[3],died:r[4],city:r[5],photo:r[6],notes:r[7],fid:r[8],mid:r[9],genHint:r[10]}));
   marriages=inferMarriages(people);
 }
+
 function inferMarriages(pp){
   const seen=new Map();
   pp.forEach(p=>{
@@ -300,112 +287,145 @@ function inferMarriages(pp){
 }
 
 // ══════════════════════════════════════════════════════════
-//  LAYOUT — Reingold-Tilford упрощённый
-//  Каждое поколение на одной горизонтальной линии.
-//  Карточки не накладываются. Дети центрируются под родителями.
+//  LAYOUT — поколения строго на одной линии, нет наложений
 // ══════════════════════════════════════════════════════════
 function layout(){
   if(!people.length)return;
   const ids=new Set(people.map(p=>p.id));
 
-  // 1. Определяем глубину каждого узла (BFS от корней)
+  // 1. Определяем глубину
+  // Сначала используем genHint если есть
   const depth={};
-  people.forEach(p=>{
-    const hasFather=p.fid&&ids.has(p.fid);
-    const hasMother=p.mid&&ids.has(p.mid);
-    if(!hasFather&&!hasMother)depth[p.id]=0;
-  });
-  // итеративно присваиваем глубину
+  people.forEach(p=>{ if(p.genHint!==null&&p.genHint!==undefined) depth[p.id]=p.genHint; });
+
+  // Для остальных — BFS от узлов без родителей
   let changed=true;
-  while(changed){
-    changed=false;
+  let iter=0;
+  while(changed&&iter<20){
+    changed=false; iter++;
     people.forEach(p=>{
       if(depth[p.id]!==undefined)return;
-      const fd=depth[p.fid],md=depth[p.mid];
-      if(p.fid&&ids.has(p.fid)&&fd===undefined)return;
-      if(p.mid&&ids.has(p.mid)&&md===undefined)return;
-      const pd=Math.max(fd!==undefined?fd:-1,md!==undefined?md:-1);
-      depth[p.id]=pd+1;changed=true;
+      const hasFid=p.fid&&ids.has(p.fid);
+      const hasMid=p.mid&&ids.has(p.mid);
+      if(!hasFid&&!hasMid){depth[p.id]=0;changed=true;return;}
+      const fd=hasFid?depth[p.fid]:undefined;
+      const md=hasMid?depth[p.mid]:undefined;
+      if(hasFid&&fd===undefined)return;
+      if(hasMid&&md===undefined)return;
+      const pd=Math.max(fd!==undefined?fd:0, md!==undefined?md:0);
+      depth[p.id]=pd+1; changed=true;
     });
   }
-  people.forEach(p=>{if(depth[p.id]===undefined)depth[p.id]=0;});
+  // Fallback
+  people.forEach(p=>{ if(depth[p.id]===undefined)depth[p.id]=0; });
 
   const maxD=Math.max(...Object.values(depth));
-
-  // 2. Группируем по поколению
-  const byGen={};
-  for(let d=0;d<=maxD;d++)byGen[d]=[];
+  const byGen=Array.from({length:maxD+1},()=>[]);
   people.forEach(p=>byGen[depth[p.id]].push(p.id));
 
-  // 3. Алгоритм расстановки по X:
-  //    Начинаем с листьев (максимальное поколение), назначаем X слева направо.
-  //    Потом идём вверх — родители центрируются над своими детьми.
-  //    Если место занято — сдвигаем.
+  // 2. Расставляем X
+  // Алгоритм: снизу вверх
+  // Сначала нижнее поколение — равномерно слева направо
+  // Потом родители центрируются над своими детьми
+  // Потом устраняем наложения двигая вправо
 
-  const posX={}, posY={};
-  // Y фиксированный по поколению
-  people.forEach(p=>posY[p.id]=depth[p.id]*(CH+VGAP));
+  const posX={};
 
-  // Начальная расстановка — листья самого глубокого поколения
-  let cursor=0;
-  // Снизу вверх: сначала расставляем нижнее поколение
-  for(let d=maxD;d>=0;d--){
-    const row=byGen[d];
-    // Для каждого узла считаем желаемый X
-    row.forEach(id=>{
-      const p=people.find(x=>x.id===id);
-      if(!p)return;
-      // Если есть дети у которых уже есть X — центрируемся над ними
+  // Нижнее поколение — начальные позиции
+  byGen[maxD].forEach((id,i)=>posX[id]=i*(CW+HGAP));
+
+  // Снизу вверх — центрируем родителей
+  for(let d=maxD-1;d>=0;d--){
+    byGen[d].forEach(id=>{
       const children=people.filter(x=>(x.fid===id||x.mid===id)&&posX[x.id]!==undefined);
       if(children.length){
         posX[id]=children.reduce((s,c)=>s+posX[c.id],0)/children.length;
+      } else if(posX[id]===undefined){
+        posX[id]=0;
       }
     });
-    // Теперь устраняем наложения в этом ряду
-    // Сортируем по желаемому X
-    const sorted=[...row].sort((a,b)=>(posX[a]||0)-(posX[b]||0));
-    // Убеждаемся что нет наложений
-    let minX=0;
-    sorted.forEach(id=>{
-      if(posX[id]===undefined||posX[id]<minX)posX[id]=minX;
-      minX=posX[id]+CW+HGAP;
-    });
+    // Устраняем наложения в этом поколении
+    resolveOverlaps(byGen[d],posX);
   }
 
+  // Сверху вниз — выравниваем детей под родителями (если сместились)
+  for(let d=1;d<=maxD;d++){
+    byGen[d].forEach(id=>{
+      const p=people.find(x=>x.id===id);
+      const parentXs=[];
+      if(p.fid&&posX[p.fid]!==undefined)parentXs.push(posX[p.fid]);
+      if(p.mid&&posX[p.mid]!==undefined)parentXs.push(posX[p.mid]);
+      // Не меняем если нет родителей
+    });
+    resolveOverlaps(byGen[d],posX);
+  }
+
+  // 3. Нормализуем — сдвигаем всё чтобы минимальный X был 80 (место для меток поколений)
+  const minX=Math.min(...Object.values(posX));
+  const offsetX=80-minX;
+  Object.keys(posX).forEach(id=>posX[id]+=offsetX);
+
   // 4. Применяем позиции
-  people.forEach(p=>{p.x=Math.round(posX[p.id]||0);p.y=Math.round(posY[p.id]||0);});
+  people.forEach(p=>{
+    p.x=Math.round(posX[p.id]||80);
+    p.y=Math.round(depth[p.id]*(CH+VGAP));
+  });
 
-  // 5. Горизонтально центрируем всё дерево
-  const minX=Math.min(...people.map(p=>p.x));
-  if(minX<0)people.forEach(p=>p.x-=minX);
-
-  // 6. Сохраняем метки поколений
-  window._genDepths={};
-  people.forEach(p=>window._genDepths[p.id]=depth[p.id]);
+  // 5. Сохраняем для меток
+  window._byGen=byGen;
   window._maxGen=maxD;
+  window._depth=depth;
+}
+
+function resolveOverlaps(ids, posX){
+  if(!ids.length)return;
+  // Сортируем по X
+  const sorted=[...ids].sort((a,b)=>(posX[a]||0)-(posX[b]||0));
+  // Проходим слева направо, двигаем вправо если нужно
+  for(let i=1;i<sorted.length;i++){
+    const prev=sorted[i-1], cur=sorted[i];
+    const minX=(posX[prev]||0)+CW+HGAP;
+    if((posX[cur]||0)<minX) posX[cur]=minX;
+  }
+  // Центрируем группу обратно (чтобы не уезжало вправо)
+  const avg=sorted.reduce((s,id)=>s+(posX[id]||0),0)/sorted.length;
+  const midTarget=sorted.length>0?(posX[sorted[0]]+(posX[sorted[sorted.length-1]]+CW))/2:0;
+  // Не сдвигаем — пусть layout сам центрирует через centerView
 }
 
 // ── RENDER ─────────────────────────────────────────────────
 function render(){
   const canvas=document.getElementById('canvas');
-  canvas.querySelectorAll('.card').forEach(e=>e.remove());
+  canvas.querySelectorAll('.card,.glabel').forEach(e=>e.remove());
   drawSVG();
   people.forEach(p=>makeCard(p));
+  // Метки поколений
+  if(window._byGen){
+    const genNames=['Прадеды','Дедушки · Бабушки','Родители','Дети','Внуки','Правнуки'];
+    for(let d=0;d<=window._maxGen;d++){
+      const lbl=document.createElement('div');
+      lbl.className='glabel';
+      lbl.textContent=genNames[d]||`Поколение ${d}`;
+      lbl.style.top=(d*(CH+VGAP)+CH/2-10)+'px';
+      canvas.appendChild(lbl);
+    }
+  }
   applyT();
 }
 
-// Центрируем вид при загрузке
 function centerView(){
   if(!people.length)return;
   const wrap=document.getElementById('wrap');
   const W=wrap.clientWidth, H=wrap.clientHeight;
-  const treeW=Math.max(...people.map(p=>p.x))+CW;
-  const treeH=Math.max(...people.map(p=>p.y))+CH;
-  // Вписываем в экран с отступом
+  const xs=people.map(p=>p.x), ys=people.map(p=>p.y);
+  const treeW=Math.max(...xs)+CW-Math.min(...xs);
+  const treeH=Math.max(...ys)+CH-Math.min(...ys);
+  const minX=Math.min(...xs), minY=Math.min(...ys);
   const sx=(W-40)/treeW, sy=(H-80)/treeH;
   scale=Math.min(sx,sy,1);
-  panX=(W-treeW*scale)/2;
-  panY=30;
+  // Центрируем по горизонтали
+  panX=(W-treeW*scale)/2 - minX*scale;
+  panY=30 - minY*scale;
   applyT();
 }
 
@@ -415,7 +435,7 @@ function gdrive(url){
   if(m)return`https://drive.google.com/uc?export=view&id=${m[1]}`;
   return url;
 }
-function ini(name){return(name||'').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();}
+function ini(name){return(name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();}
 
 function makeCard(p){
   const canvas=document.getElementById('canvas');
@@ -443,44 +463,36 @@ function drawSVG(){
   const svg=document.getElementById('svgl');svg.innerHTML='';
   const pm={};people.forEach(p=>pm[p.id]=p);
   const drawn=new Set();
-
-  // Родитель → ребёнок
   people.forEach(p=>{
     [p.fid,p.mid].filter(Boolean).forEach(pid=>{
       const par=pm[pid];if(!par)return;
       const key=pid+'>'+p.id;if(drawn.has(key))return;drawn.add(key);
-      const x1=par.x+CW/2,y1=par.y+CH;
-      const x2=p.x+CW/2,  y2=p.y;
-      const my=(y1+y2)/2;
+      const x1=par.x+CW/2,y1=par.y+CH,x2=p.x+CW/2,y2=p.y,my=(y1+y2)/2;
       const path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('d',`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
       path.setAttribute('fill','none');
-      path.setAttribute('stroke','rgba(139,105,20,0.3)');
+      path.setAttribute('stroke','rgba(139,105,20,0.28)');
       path.setAttribute('stroke-width','1.8');
       svg.appendChild(path);
     });
   });
-
-  // Супруги — горизонтальная пунктирная линия + сердечко
   marriages.forEach(m=>{
     const pa=pm[m.a],pb=pm[m.b];if(!pa||!pb)return;
     const key=[m.a,m.b].sort().join('=');if(drawn.has(key))return;drawn.add(key);
-    const L=pa.x<pb.x?pa:pb, R=pa.x<pb.x?pb:pa;
-    const x1=L.x+CW,y1=L.y+CH*0.38,x2=R.x,y2=R.y+CH*0.38;
+    const L=pa.x<pb.x?pa:pb,R=pa.x<pb.x?pb:pa;
+    const x1=L.x+CW,y1=L.y+CH*.38,x2=R.x,y2=R.y+CH*.38;
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     line.setAttribute('x1',x1);line.setAttribute('y1',y1);
     line.setAttribute('x2',x2);line.setAttribute('y2',y2);
-    line.setAttribute('stroke','rgba(139,105,20,0.45)');
+    line.setAttribute('stroke','rgba(139,105,20,0.42)');
     line.setAttribute('stroke-width','1.8');
     line.setAttribute('stroke-dasharray','6,4');
     svg.appendChild(line);
-    // Сердечко по центру
-    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
     const t=document.createElementNS('http://www.w3.org/2000/svg','text');
     t.setAttribute('x',mx);t.setAttribute('y',my+5);
-    t.setAttribute('text-anchor','middle');t.setAttribute('font-size','13');
-    t.setAttribute('fill','rgba(139,105,20,0.5)');
-    t.textContent='♥';
+    t.setAttribute('text-anchor','middle');t.setAttribute('font-size','12');
+    t.setAttribute('fill','rgba(139,105,20,0.45)');t.textContent='♥';
     svg.appendChild(t);
   });
 }
@@ -544,10 +556,9 @@ function doSearch(q){
   });
 }
 
-// ── PAN & ZOOM (мышь + тач) ────────────────────────────────
+// ── PAN & ZOOM ─────────────────────────────────────────────
 (()=>{
   const w=document.getElementById('wrap');
-  // Mouse
   let pn=false,sx=0,sy=0,opx=0,opy=0;
   w.addEventListener('mousedown',e=>{
     if(e.target.closest('.card'))return;
@@ -556,35 +567,30 @@ function doSearch(q){
   window.addEventListener('mousemove',e=>{if(!pn)return;panX=opx+(e.clientX-sx);panY=opy+(e.clientY-sy);applyT();});
   window.addEventListener('mouseup',()=>{pn=false;w.classList.remove('grabbing');});
   w.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?-0.1:0.1);},{passive:false});
-
-  // Touch — pan с одним пальцем, pinch-zoom с двумя
-  let t1=null,t2=null,initDist=0,initScale=1;
+  let t1=null,initDist=0,initScale=1,t1pan=null;
   w.addEventListener('touchstart',e=>{
-    if(e.touches.length===1){
-      t1={x:e.touches[0].clientX,y:e.touches[0].clientY,px:panX,py:panY};
-      t2=null;
-    } else if(e.touches.length===2){
-      t2=true;
+    if(e.touches.length===1){t1pan={x:e.touches[0].clientX,y:e.touches[0].clientY,px:panX,py:panY};}
+    else if(e.touches.length===2){
+      t1=true;
       initDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
       initScale=scale;
     }
   },{passive:true});
   w.addEventListener('touchmove',e=>{
     e.preventDefault();
-    if(e.touches.length===1&&t1&&!t2){
-      panX=t1.px+(e.touches[0].clientX-t1.x);
-      panY=t1.py+(e.touches[0].clientY-t1.y);
+    if(e.touches.length===1&&t1pan&&!t1){
+      panX=t1pan.px+(e.touches[0].clientX-t1pan.x);
+      panY=t1pan.py+(e.touches[0].clientY-t1pan.y);
       applyT();
     } else if(e.touches.length===2&&initDist){
       const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      scale=Math.max(0.15,Math.min(3,initScale*(d/initDist)));
-      applyT();
+      scale=Math.max(0.1,Math.min(3,initScale*(d/initDist)));applyT();
     }
   },{passive:false});
-  w.addEventListener('touchend',()=>{t1=null;t2=null;});
+  w.addEventListener('touchend',()=>{t1=null;t1pan=null;});
 })();
 
-function zoom(d){scale=Math.max(0.15,Math.min(3,scale+d));applyT();}
+function zoom(d){scale=Math.max(0.1,Math.min(3,scale+d));applyT();}
 function resetView(){centerView();}
 function applyT(){
   document.getElementById('canvas').style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
