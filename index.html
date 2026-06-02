@@ -286,14 +286,11 @@ function inferMarriages(pp){
   return[...seen.values()];
 }
 
-// ══════════════════════════════════════════════════════════
-//  LAYOUT — супруги рядом, дети по центру под ними
-// ══════════════════════════════════════════════════════════
 function layout(){
   if(!people.length)return;
   const ids=new Set(people.map(p=>p.id));
 
-  // 1. Глубина — genHint приоритет, иначе BFS
+  // 1. Глубина
   const depth={};
   people.forEach(p=>{ if(p.genHint!=null) depth[p.id]=p.genHint; });
   let changed=true,iter=0;
@@ -315,68 +312,53 @@ function layout(){
   const byGen=Array.from({length:maxD+1},()=>[]);
   people.forEach(p=>byGen[depth[p.id]].push(p.id));
 
-  // 2. Строим пары супругов (у кого есть общие дети)
-  // Для каждой пары (fid,mid) — они должны стоять рядом
-  const couples=new Map(); // "fid|mid" -> {a,b}
+  // 2. Пары супругов из общих детей
+  const coupleOf={}; // id -> id партнёра
   people.forEach(p=>{
     if(!p.fid||!p.mid)return;
-    const key=[p.fid,p.mid].sort().join('|');
-    if(!couples.has(key))couples.set(key,{a:p.fid,b:p.mid});
+    coupleOf[p.fid]=p.mid;
+    coupleOf[p.mid]=p.fid;
   });
 
-  // 3. Расставляем X — снизу вверх
+  // 3. Для каждого поколения строим упорядоченный список:
+  //    супруги идут рядом как пара, затем одиночки
   const posX={};
-
-  // Расставляем самое нижнее поколение равномерно
-  byGen[maxD].forEach((id,i)=>posX[id]=i*(CW+HGAP));
-
-  // Снизу вверх
-  for(let d=maxD-1;d>=0;d--){
-    const row=byGen[d];
-
-    // Для каждого узла — желаемый X = центр под детьми
-    row.forEach(id=>{
-      if(posX[id]!=null)return;
-      const ch=people.filter(x=>(x.fid===id||x.mid===id)&&posX[x.id]!=null);
-      posX[id]=ch.length ? ch.reduce((s,c)=>s+posX[c.id],0)/ch.length : 0;
-    });
-
-    // Притягиваем супругов друг к другу:
-    // Если A и B — пара, ставим их рядом, центр между ними = среднее желаемых позиций
-    couples.forEach(({a,b})=>{
-      if(depth[a]!==d&&depth[b]!==d)return;
-      if(posX[a]==null||posX[b]==null)return;
-      const center=(posX[a]+posX[b])/2;
-      posX[a]=center-CW/2-HGAP/2;
-      posX[b]=center+CW/2+HGAP/2;
-    });
-
-    // Убираем наложения
-    resolveOverlaps(row,posX);
-  }
-
-  // Снова притягиваем супругов после resolveOverlaps (финальный проход)
   for(let d=0;d<=maxD;d++){
-    couples.forEach(({a,b})=>{
-      if(depth[a]!==d||depth[b]!==d)return;
-      if(posX[a]==null||posX[b]==null)return;
-      // Если между ними есть пространство — сдвигаем вплотную
-      const L=posX[a]<posX[b]?a:b, R=posX[a]<posX[b]?b:a;
-      const gap=posX[R]-(posX[L]+CW);
-      const targetGap=HGAP/2; // вплотную с маленьким зазором
-      if(gap>targetGap){
-        const shift=(gap-targetGap)/2;
-        posX[L]+=shift; posX[R]-=shift;
+    const raw=byGen[d];
+    const placed=new Set();
+    const ordered=[];
+
+    raw.forEach(id=>{
+      if(placed.has(id))return;
+      ordered.push(id);
+      placed.add(id);
+      // Если есть партнёр в том же поколении — ставим сразу рядом
+      const partner=coupleOf[id];
+      if(partner&&depth[partner]===d&&!placed.has(partner)){
+        ordered.push(partner);
+        placed.add(partner);
       }
     });
-    resolveOverlaps(byGen[d],posX);
+
+    // Расставляем ordered слева направо
+    // Сначала считаем желаемый X — центр над детьми
+    const wantX={};
+    ordered.forEach(id=>{
+      const ch=people.filter(x=>(x.fid===id||x.mid===id)&&posX[x.id]!=null);
+      wantX[id]=ch.length ? ch.reduce((s,c)=>s+posX[c.id],0)/ch.length : null;
+    });
+
+    // Расставляем с учётом желаемых позиций и минимального зазора
+    let cursor=80;
+    ordered.forEach((id,i)=>{
+      const want=wantX[id];
+      const x=want!=null ? Math.max(cursor, want) : cursor;
+      posX[id]=x;
+      cursor=x+CW+HGAP;
+    });
   }
 
-  // 4. Нормализуем — сдвигаем чтобы minX=80
-  const minX=Math.min(...Object.values(posX));
-  Object.keys(posX).forEach(id=>posX[id]+=80-minX);
-
-  // 5. Применяем
+  // 4. Применяем
   people.forEach(p=>{
     p.x=Math.round(posX[p.id]??80);
     p.y=Math.round(depth[p.id]*(CH+VGAP));
