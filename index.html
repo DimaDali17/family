@@ -55,9 +55,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 .card:hover{border-color:var(--gold2);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.12);z-index:5;}
 .card.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(139,105,20,.18),0 6px 22px rgba(0,0,0,.12);z-index:20;}
 .card.dim{opacity:.14;}
-.cphoto{width:100%;height:88px;object-fit:cover;display:block;background:var(--bg3);}
-.cph{width:100%;height:88px;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink3);}
-.cbody{padding:9px 11px 10px;}
+.ctop{display:flex;align-items:center;gap:10px;padding:12px 12px 6px;}
+.cphoto{width:68px;height:68px;object-fit:cover;border-radius:50%;border:2.5px solid var(--border2);flex-shrink:0;display:block;}
+.cph{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink3);border:2px solid var(--border);flex-shrink:0;}
+.cbody{padding:0 12px 10px;}
 .cname{font-family:'Cormorant Garamond',serif;font-size:14px;line-height:1.25;color:var(--ink);font-weight:700;}
 .csub{font-size:10px;color:var(--gold);letter-spacing:.02em;margin-top:1px;font-style:italic;}
 .cyr{font-size:10px;color:var(--ink3);margin-top:2px;}
@@ -286,110 +287,111 @@ function inferMarriages(pp){
 }
 
 // ══════════════════════════════════════════════════════════
-//  LAYOUT — поколения строго на одной линии, нет наложений
+//  LAYOUT — супруги рядом, дети по центру под ними
 // ══════════════════════════════════════════════════════════
 function layout(){
   if(!people.length)return;
   const ids=new Set(people.map(p=>p.id));
 
-  // 1. Определяем глубину
-  // Сначала используем genHint если есть
+  // 1. Глубина — genHint приоритет, иначе BFS
   const depth={};
-  people.forEach(p=>{ if(p.genHint!==null&&p.genHint!==undefined) depth[p.id]=p.genHint; });
-
-  // Для остальных — BFS от узлов без родителей
-  let changed=true;
-  let iter=0;
-  while(changed&&iter<20){
-    changed=false; iter++;
+  people.forEach(p=>{ if(p.genHint!=null) depth[p.id]=p.genHint; });
+  let changed=true,iter=0;
+  while(changed&&iter<30){
+    changed=false;iter++;
     people.forEach(p=>{
-      if(depth[p.id]!==undefined)return;
-      const hasFid=p.fid&&ids.has(p.fid);
-      const hasMid=p.mid&&ids.has(p.mid);
+      if(depth[p.id]!=null)return;
+      const hasFid=p.fid&&ids.has(p.fid), hasMid=p.mid&&ids.has(p.mid);
       if(!hasFid&&!hasMid){depth[p.id]=0;changed=true;return;}
-      const fd=hasFid?depth[p.fid]:undefined;
-      const md=hasMid?depth[p.mid]:undefined;
-      if(hasFid&&fd===undefined)return;
-      if(hasMid&&md===undefined)return;
-      const pd=Math.max(fd!==undefined?fd:0, md!==undefined?md:0);
-      depth[p.id]=pd+1; changed=true;
+      const fd=hasFid?depth[p.fid]:null, md=hasMid?depth[p.mid]:null;
+      if(hasFid&&fd==null)return;
+      if(hasMid&&md==null)return;
+      depth[p.id]=Math.max(fd??0,md??0)+1;changed=true;
     });
   }
-  // Fallback
-  people.forEach(p=>{ if(depth[p.id]===undefined)depth[p.id]=0; });
+  people.forEach(p=>{if(depth[p.id]==null)depth[p.id]=0;});
 
   const maxD=Math.max(...Object.values(depth));
   const byGen=Array.from({length:maxD+1},()=>[]);
   people.forEach(p=>byGen[depth[p.id]].push(p.id));
 
-  // 2. Расставляем X
-  // Алгоритм: снизу вверх
-  // Сначала нижнее поколение — равномерно слева направо
-  // Потом родители центрируются над своими детьми
-  // Потом устраняем наложения двигая вправо
+  // 2. Строим пары супругов (у кого есть общие дети)
+  // Для каждой пары (fid,mid) — они должны стоять рядом
+  const couples=new Map(); // "fid|mid" -> {a,b}
+  people.forEach(p=>{
+    if(!p.fid||!p.mid)return;
+    const key=[p.fid,p.mid].sort().join('|');
+    if(!couples.has(key))couples.set(key,{a:p.fid,b:p.mid});
+  });
 
+  // 3. Расставляем X — снизу вверх
   const posX={};
 
-  // Нижнее поколение — начальные позиции
+  // Расставляем самое нижнее поколение равномерно
   byGen[maxD].forEach((id,i)=>posX[id]=i*(CW+HGAP));
 
-  // Снизу вверх — центрируем родителей
+  // Снизу вверх
   for(let d=maxD-1;d>=0;d--){
-    byGen[d].forEach(id=>{
-      const children=people.filter(x=>(x.fid===id||x.mid===id)&&posX[x.id]!==undefined);
-      if(children.length){
-        posX[id]=children.reduce((s,c)=>s+posX[c.id],0)/children.length;
-      } else if(posX[id]===undefined){
-        posX[id]=0;
+    const row=byGen[d];
+
+    // Для каждого узла — желаемый X = центр под детьми
+    row.forEach(id=>{
+      if(posX[id]!=null)return;
+      const ch=people.filter(x=>(x.fid===id||x.mid===id)&&posX[x.id]!=null);
+      posX[id]=ch.length ? ch.reduce((s,c)=>s+posX[c.id],0)/ch.length : 0;
+    });
+
+    // Притягиваем супругов друг к другу:
+    // Если A и B — пара, ставим их рядом, центр между ними = среднее желаемых позиций
+    couples.forEach(({a,b})=>{
+      if(depth[a]!==d&&depth[b]!==d)return;
+      if(posX[a]==null||posX[b]==null)return;
+      const center=(posX[a]+posX[b])/2;
+      posX[a]=center-CW/2-HGAP/2;
+      posX[b]=center+CW/2+HGAP/2;
+    });
+
+    // Убираем наложения
+    resolveOverlaps(row,posX);
+  }
+
+  // Снова притягиваем супругов после resolveOverlaps (финальный проход)
+  for(let d=0;d<=maxD;d++){
+    couples.forEach(({a,b})=>{
+      if(depth[a]!==d||depth[b]!==d)return;
+      if(posX[a]==null||posX[b]==null)return;
+      // Если между ними есть пространство — сдвигаем вплотную
+      const L=posX[a]<posX[b]?a:b, R=posX[a]<posX[b]?b:a;
+      const gap=posX[R]-(posX[L]+CW);
+      const targetGap=HGAP/2; // вплотную с маленьким зазором
+      if(gap>targetGap){
+        const shift=(gap-targetGap)/2;
+        posX[L]+=shift; posX[R]-=shift;
       }
     });
-    // Устраняем наложения в этом поколении
     resolveOverlaps(byGen[d],posX);
   }
 
-  // Сверху вниз — выравниваем детей под родителями (если сместились)
-  for(let d=1;d<=maxD;d++){
-    byGen[d].forEach(id=>{
-      const p=people.find(x=>x.id===id);
-      const parentXs=[];
-      if(p.fid&&posX[p.fid]!==undefined)parentXs.push(posX[p.fid]);
-      if(p.mid&&posX[p.mid]!==undefined)parentXs.push(posX[p.mid]);
-      // Не меняем если нет родителей
-    });
-    resolveOverlaps(byGen[d],posX);
-  }
-
-  // 3. Нормализуем — сдвигаем всё чтобы минимальный X был 80 (место для меток поколений)
+  // 4. Нормализуем — сдвигаем чтобы minX=80
   const minX=Math.min(...Object.values(posX));
-  const offsetX=80-minX;
-  Object.keys(posX).forEach(id=>posX[id]+=offsetX);
+  Object.keys(posX).forEach(id=>posX[id]+=80-minX);
 
-  // 4. Применяем позиции
+  // 5. Применяем
   people.forEach(p=>{
-    p.x=Math.round(posX[p.id]||80);
+    p.x=Math.round(posX[p.id]??80);
     p.y=Math.round(depth[p.id]*(CH+VGAP));
   });
 
-  // 5. Сохраняем для меток
-  window._byGen=byGen;
-  window._maxGen=maxD;
-  window._depth=depth;
+  window._byGen=byGen; window._maxGen=maxD; window._depth=depth;
 }
 
-function resolveOverlaps(ids, posX){
+function resolveOverlaps(ids,posX){
   if(!ids.length)return;
-  // Сортируем по X
-  const sorted=[...ids].sort((a,b)=>(posX[a]||0)-(posX[b]||0));
-  // Проходим слева направо, двигаем вправо если нужно
+  const sorted=[...ids].sort((a,b)=>(posX[a]??0)-(posX[b]??0));
   for(let i=1;i<sorted.length;i++){
-    const prev=sorted[i-1], cur=sorted[i];
-    const minX=(posX[prev]||0)+CW+HGAP;
-    if((posX[cur]||0)<minX) posX[cur]=minX;
+    const need=(posX[sorted[i-1]]??0)+CW+HGAP;
+    if((posX[sorted[i]]??0)<need) posX[sorted[i]]=need;
   }
-  // Центрируем группу обратно (чтобы не уезжало вправо)
-  const avg=sorted.reduce((s,id)=>s+(posX[id]||0),0)/sorted.length;
-  const midTarget=sorted.length>0?(posX[sorted[0]]+(posX[sorted[sorted.length-1]]+CW))/2:0;
-  // Не сдвигаем — пусть layout сам центрирует через centerView
 }
 
 // ── RENDER ─────────────────────────────────────────────────
@@ -446,14 +448,17 @@ function makeCard(p){
   const iv=ini(p.name);
   const src=gdrive(p.photo);
   const yr=p.yr?(p.died?p.yr+'–'+p.died:'р. '+p.yr):'';
-  el.innerHTML=(src
-    ?`<img class="cphoto" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="cph" style="display:none">${iv}</div>`
-    :`<div class="cph">${iv}</div>`)
-    +`<div class="cbody">
+  el.innerHTML=`<div class="ctop">`
+    +(src
+      ?`<img class="cphoto" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="cph" style="display:none">${iv}</div>`
+      :`<div class="cph">${iv}</div>`)
+    +`<div style="min-width:0">
         <div class="cname">${p.name}</div>
         ${p.sub?`<div class="csub">${p.sub}</div>`:''}
-        ${yr||p.city?`<div class="cyr">${[yr,p.city].filter(Boolean).join(' · ')}</div>`:''}
-      </div>`;
+      </div></div>
+    <div class="cbody">
+      ${yr||p.city?`<div class="cyr">${[yr,p.city].filter(Boolean).join(' · ')}</div>`:''}
+    </div>`;
   el.addEventListener('click',()=>selectP(p.id));
   canvas.appendChild(el);
 }
