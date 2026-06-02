@@ -289,7 +289,6 @@ function inferMarriages(pp){
 function layout(){
   if(!people.length)return;
   const ids=new Set(people.map(p=>p.id));
-
   // 1. Глубина
   const depth={};
   people.forEach(p=>{ if(p.genHint!=null) depth[p.id]=p.genHint; });
@@ -307,11 +306,9 @@ function layout(){
     });
   }
   people.forEach(p=>{if(depth[p.id]==null)depth[p.id]=0;});
-
   const maxD=Math.max(...Object.values(depth));
   const byGen=Array.from({length:maxD+1},()=>[]);
   people.forEach(p=>byGen[depth[p.id]].push(p.id));
-
   // 2. Пары супругов
   const coupleOf={};
   people.forEach(p=>{
@@ -319,18 +316,12 @@ function layout(){
     coupleOf[p.fid]=p.mid;
     coupleOf[p.mid]=p.fid;
   });
-
-  // 3. Для каждого поколения строим группы:
-  //    Сначала группируем сиблингов (одни родители) вместе,
-  //    внутри группы сиблингов — супруг идёт сразу рядом.
-  //    Порядок групп определяется позицией их родителей (слева направо).
+  // 3. Расстановка по поколениям
   const posX={};
-
   for(let d=0;d<=maxD;d++){
     const raw=[...byGen[d]];
-
-    // Строим группы сиблингов по ключу "fid|mid"
-    const sibGroups=new Map(); // ключ -> [ids]
+    // Группы сиблингов по ключу "fid|mid"
+    const sibGroups=new Map();
     const noParent=[];
     raw.forEach(id=>{
       const p=people.find(x=>x.id===id);
@@ -341,19 +332,14 @@ function layout(){
       if(!sibGroups.has(key))sibGroups.set(key,{f,m,ids:[]});
       sibGroups.get(key).ids.push(id);
     });
-
-    // Сортируем группы по X родителей (чтобы группы шли слева направо)
+    // Сортируем группы по X родителей
     const sortedGroups=[...sibGroups.values()].sort((a,b)=>{
       const axA=(posX[a.f]??posX[a.m]??0);
       const axB=(posX[b.f]??posX[b.m]??0);
       return axA-axB;
     });
-
-    // Строим финальный упорядоченный список:
-    // Внутри каждой группы сиблингов — супруг идёт сразу после сиблинга
     const placed=new Set();
     const ordered=[];
-
     const addWithSpouse=(id)=>{
       if(placed.has(id))return;
       placed.add(id);
@@ -364,18 +350,18 @@ function layout(){
         ordered.push(partner);
       }
     };
-
-    // Сначала группы сиблингов (по порядку родителей)
-    sortedGroups.forEach(g=>g.ids.forEach(id=>addWithSpouse(id)));
-    // Потом без родителей
+    // Внутри группы сиблингов: сначала одиночки, потом пары
+    sortedGroups.forEach(g=>{
+      const withoutSpouse=g.ids.filter(id=>!coupleOf[id]||depth[coupleOf[id]]!==d);
+      const withSpouse=g.ids.filter(id=>coupleOf[id]&&depth[coupleOf[id]]===d);
+      withoutSpouse.forEach(id=>addWithSpouse(id));
+      withSpouse.forEach(id=>addWithSpouse(id));
+    });
     noParent.forEach(id=>addWithSpouse(id));
-    // Потом оставшиеся (супруги из других групп которые ещё не добавлены)
     raw.forEach(id=>addWithSpouse(id));
-
     // Расставляем по X
     let cursor=80;
     ordered.forEach(id=>{
-      // Желаемый X — центр над детьми
       const ch=people.filter(x=>(x.fid===id||x.mid===id)&&posX[x.id]!=null);
       const want=ch.length ? ch.reduce((s,c)=>s+posX[c.id],0)/ch.length : null;
       const x=want!=null ? Math.max(cursor,want) : cursor;
@@ -383,13 +369,11 @@ function layout(){
       cursor=x+CW+HGAP;
     });
   }
-
   // 4. Применяем
   people.forEach(p=>{
     p.x=Math.round(posX[p.id]??80);
     p.y=Math.round(depth[p.id]*(CH+VGAP));
   });
-
   window._byGen=byGen; window._maxGen=maxD; window._depth=depth;
 }
 // ── RENDER ─────────────────────────────────────────────────
