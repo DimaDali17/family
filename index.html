@@ -328,82 +328,59 @@ function layout(){
     coupleOf[p.fid]=p.mid;
     coupleOf[p.mid]=p.fid;
   });
-  // 3. Расстановка по поколениям
+  // 3. Расстановка: единицы (пара или одиночка) + минимизация пересечений линий
+  const pmap={}; people.forEach(p=>pmap[p.id]=p);
+  const parentsOf=id=>[pmap[id].fid,pmap[id].mid].filter(q=>q&&ids.has(q));
+  const kidsOf={};
+  people.forEach(p=>[p.fid,p.mid].forEach(q=>{ if(q&&ids.has(q))(kidsOf[q]=kidsOf[q]||[]).push(p.id); }));
   const posX={};
+  const units=Array.from({length:maxD+1},()=>[]);
+  const UW=u=>u.length*CW+(u.length-1)*HGAP;
+  const cx=id=>posX[id]+CW/2;
   for(let d=0;d<=maxD;d++){
-    const raw=[...byGen[d]];
-    // Группы сиблингов по ключу "fid|mid"
-    const sibGroups=new Map();
-    const noParent=[];
-    raw.forEach(id=>{
-      const p=people.find(x=>x.id===id);
-      const f=p.fid&&ids.has(p.fid)?p.fid:'';
-      const m=p.mid&&ids.has(p.mid)?p.mid:'';
-      if(!f&&!m){ noParent.push(id); return; }
-      const key=[f,m].filter(Boolean).sort().join('|');
-      if(!sibGroups.has(key))sibGroups.set(key,{f,m,ids:[]});
-      sibGroups.get(key).ids.push(id);
-    });
-    // Сортируем группы по X родителей
-    const sortedGroups=[...sibGroups.values()].sort((a,b)=>{
-      const axA=(posX[a.f]??posX[a.m]??0);
-      const axB=(posX[b.f]??posX[b.m]??0);
-      return axA-axB;
-    });
-    const placed=new Set();
-    const ordered=[];
-    const addWithSpouse=(id)=>{
-      if(placed.has(id))return;
-      placed.add(id);
-      ordered.push(id);
-      const partner=coupleOf[id];
-      if(partner&&depth[partner]===d&&!placed.has(partner)){
-        placed.add(partner);
-        ordered.push(partner);
-      }
-    };
-    // Внутри группы сиблингов: сначала одиночки, потом пары
-    sortedGroups.forEach(g=>{
-      const withoutSpouse=g.ids.filter(id=>!coupleOf[id]||depth[coupleOf[id]]!==d);
-      const withSpouse=g.ids.filter(id=>coupleOf[id]&&depth[coupleOf[id]]===d);
-      withoutSpouse.forEach(id=>addWithSpouse(id));
-      withSpouse.forEach(id=>addWithSpouse(id));
-    });
-    noParent.forEach(id=>addWithSpouse(id));
-    raw.forEach(id=>addWithSpouse(id));
-    // Расставляем по X
-    let cursor=80;
-    ordered.forEach(id=>{
-      const ch=people.filter(x=>(x.fid===id||x.mid===id)&&posX[x.id]!=null);
-      const want=ch.length ? ch.reduce((s,c)=>s+posX[c.id],0)/ch.length : null;
-      const x=want!=null ? Math.max(cursor,want) : cursor;
-      posX[id]=x;
-      cursor=x+CW+HGAP;
-    });
-  }
-  // 3b. Второй проход снизу вверх: родители стоят по центру над своими детьми
-  for(let d=maxD-1;d>=0;d--){
-    const row=byGen[d].filter(id=>posX[id]!=null).sort((a,b)=>posX[a]-posX[b]);
-    const used=new Set(), units=[];
-    row.forEach(id=>{
+    const used=new Set();
+    byGen[d].forEach(id=>{
       if(used.has(id))return; used.add(id);
       const u=[id], pt=coupleOf[id];
       if(pt&&depth[pt]===d&&!used.has(pt)){used.add(pt);u.push(pt);}
-      units.push(u);
+      units[d].push(u);
     });
-    const unitW=u=>u.length*CW+(u.length-1)*HGAP;
-    units.forEach(u=>{
-      const kids=people.filter(x=>u.some(m=>x.fid===m||x.mid===m)&&posX[x.id]!=null&&depth[x.id]>d);
-      u.start=kids.length ? kids.reduce((s,c)=>s+posX[c.id]+CW/2,0)/kids.length-unitW(u)/2 : posX[u[0]];
-    });
-    units.sort((a,b)=>a.start-b.start);
     let cur=80;
-    units.forEach(u=>{
-      let x=Math.max(cur,u.start);
-      u.forEach(id=>{ posX[id]=x; x+=CW+HGAP; });
+    units[d].forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=CW+HGAP;}));
+  }
+  const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+  function arrange(d,dir){
+    const list=units[d];
+    list.forEach(u=>{
+      // внутри пары: слева тот, чьи родители левее (кровный потомок стоит под своими родителями)
+      if(u.length===2){
+        const k=id=>{const pp=parentsOf(id).filter(q=>posX[q]!=null);return pp.length?avg(pp.map(cx)):null;};
+        const k0=k(u[0]),k1=k(u[1]);
+        if((k0==null&&k1!=null)?false:(k1==null&&k0!=null)?false:(k0!=null&&k1!=null&&k1<k0)) u.reverse();
+        else if(k0==null&&k1!=null) u.reverse();
+      }
+      const links=[];
+      u.forEach(id=>(dir==='up'?parentsOf(id):(kidsOf[id]||[])).forEach(q=>{ if(posX[q]!=null)links.push(cx(q)); }));
+      u.want=links.length?avg(links):posX[u[0]]+UW(u)/2;
+      // сверху вниз: первый в паре (кровный потомок) стоит строго под своими родителями, супруг(а) — рядом справа
+      if(dir==='up'&&u.length===2){
+        const pp=parentsOf(u[0]).filter(q=>posX[q]!=null);
+        if(pp.length) u.want=avg(pp.map(cx))-CW/2+UW(u)/2;
+      }
+    });
+    list.sort((a,b)=>a.want-b.want);
+    let cur=80;
+    list.forEach(u=>{
+      let x=Math.max(cur,u.want-UW(u)/2);
+      u.forEach(id=>{posX[id]=x;x+=CW+HGAP;});
       cur=x;
     });
   }
+  for(let it=0;it<6;it++){
+    for(let d=1;d<=maxD;d++)arrange(d,'up');
+    for(let d=maxD-1;d>=0;d--)arrange(d,'down');
+  }
+  for(let d=1;d<=maxD;d++)arrange(d,'up');
   // 4. Применяем
   people.forEach(p=>{
     p.x=Math.round(posX[p.id]??80);
