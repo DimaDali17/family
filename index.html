@@ -381,6 +381,29 @@ function layout(){
       cursor=x+CW+HGAP;
     });
   }
+  // 3b. Второй проход снизу вверх: родители стоят по центру над своими детьми
+  for(let d=maxD-1;d>=0;d--){
+    const row=byGen[d].filter(id=>posX[id]!=null).sort((a,b)=>posX[a]-posX[b]);
+    const used=new Set(), units=[];
+    row.forEach(id=>{
+      if(used.has(id))return; used.add(id);
+      const u=[id], pt=coupleOf[id];
+      if(pt&&depth[pt]===d&&!used.has(pt)){used.add(pt);u.push(pt);}
+      units.push(u);
+    });
+    const unitW=u=>u.length*CW+(u.length-1)*HGAP;
+    units.forEach(u=>{
+      const kids=people.filter(x=>u.some(m=>x.fid===m||x.mid===m)&&posX[x.id]!=null&&depth[x.id]>d);
+      u.start=kids.length ? kids.reduce((s,c)=>s+posX[c.id]+CW/2,0)/kids.length-unitW(u)/2 : posX[u[0]];
+    });
+    units.sort((a,b)=>a.start-b.start);
+    let cur=80;
+    units.forEach(u=>{
+      let x=Math.max(cur,u.start);
+      u.forEach(id=>{ posX[id]=x; x+=CW+HGAP; });
+      cur=x;
+    });
+  }
   // 4. Применяем
   people.forEach(p=>{
     p.x=Math.round(posX[p.id]??80);
@@ -396,11 +419,11 @@ function render(){
   people.forEach(p=>makeCard(p));
   // Метки поколений
   if(window._byGen){
-    const genNames=['Прадеды','Дедушки · Бабушки','Родители','Дети','Внуки','Правнуки'];
     for(let d=0;d<=window._maxGen;d++){
+      if(!window._byGen[d].length)continue;
       const lbl=document.createElement('div');
       lbl.className='glabel';
-      lbl.textContent=genNames[d]||`Поколение ${d}`;
+      lbl.textContent='Поколение '+d;
       lbl.style.top=(d*(CH+VGAP)+CH/2-10)+'px';
       canvas.appendChild(lbl);
     }
