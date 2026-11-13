@@ -683,5 +683,307 @@ document.getElementById('wrap').addEventListener('click',e=>{
   if(!e.target.closest('.card')&&selId)closePanel();
 });
 </script>
+<!-- ═══════════════ РЕДАКТОР: вставь весь этот блок в index.html прямо перед </body> ═══════════════ -->
+<style>
+.ed-bg{position:fixed;inset:0;background:rgba(44,36,22,.45);display:none;align-items:center;justify-content:center;z-index:300;padding:16px;}
+.ed-bg.show{display:flex;}
+.ed-modal{background:var(--bg2,#FAF7F0);border:1.5px solid var(--border,#D4C9B0);border-radius:12px;width:100%;max-width:480px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+.ed-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border,#D4C9B0);}
+.ed-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--ink,#2C2416);}
+.ed-x{background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:var(--ink3,#9E8E78);width:32px;height:32px;border-radius:50%;}
+.ed-x:hover{background:var(--bg3,#EAE4D6);}
+.ed-body{padding:14px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:11px;}
+.ed-body label{display:flex;flex-direction:column;gap:4px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3,#9E8E78);flex:1;min-width:0;}
+.ed-body input,.ed-body select,.ed-body textarea{font-family:'Inter',sans-serif;font-size:14px;letter-spacing:0;text-transform:none;color:var(--ink,#2C2416);background:#fff;border:1.5px solid var(--border,#D4C9B0);border-radius:6px;padding:8px 10px;outline:none;width:100%;}
+.ed-body input:focus,.ed-body select:focus,.ed-body textarea:focus{border-color:var(--gold,#8B6914);}
+.ed-body textarea{resize:vertical;min-height:80px;}
+.ed-row{display:flex;gap:10px;}
+.ed-hint{font-size:11px;color:var(--ink3,#9E8E78);line-height:1.4;}
+.ed-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3,#9E8E78);}
+.ed-ph{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.ed-ph input{padding:7px 8px;font-size:12px;}
+.ed-ph .u{flex:3;}
+.ed-ph .c{flex:2;}
+.ed-ph button{background:none;border:none;color:var(--ink3,#9E8E78);font-size:18px;cursor:pointer;padding:0 4px;}
+.ed-ph button:hover{color:#8B2020;}
+.ed-prow{display:flex;gap:8px;flex-wrap:wrap;}
+.ed-small{padding:7px 12px;border-radius:6px;font-size:11px;font-weight:500;letter-spacing:.06em;cursor:pointer;border:1.5px solid var(--border2,#B8A880);background:var(--bg2,#FAF7F0);color:var(--ink2,#6B5D4A);}
+.ed-small:hover{border-color:var(--gold,#8B6914);color:var(--gold,#8B6914);}
+.ed-foot{display:flex;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--border,#D4C9B0);}
+.ed-msg{flex:1;font-size:12px;color:#8B2020;min-height:16px;}
+.ed-msg.ok{color:#2e6b34;}
+.ed-btn{padding:9px 18px;border-radius:6px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:1.5px solid var(--border2,#B8A880);background:var(--bg2,#FAF7F0);color:var(--ink2,#6B5D4A);}
+.ed-btn.primary{background:var(--ink,#2C2416);border-color:var(--ink,#2C2416);color:#FDF9F0;}
+.ed-btn.primary:hover{background:var(--gold,#8B6914);border-color:var(--gold,#8B6914);}
+.ed-btn:disabled{opacity:.5;cursor:default;}
+.ed-pen{position:absolute;right:52px;top:12px;background:none;border:1.5px solid var(--border2,#B8A880);border-radius:50%;width:32px;height:32px;cursor:pointer;color:var(--ink2,#6B5D4A);font-size:15px;line-height:1;}
+.ed-pen:hover{border-color:var(--gold,#8B6914);color:var(--gold,#8B6914);}
+@media(max-width:520px){.ed-modal{max-height:100vh;height:100%;border-radius:0;max-width:none}.ed-bg{padding:0}.ed-row{flex-direction:column}}
+</style>
+
+<div class="ed-bg" id="edBg">
+  <div class="ed-modal" role="dialog" aria-modal="true">
+    <div class="ed-head"><div class="ed-title" id="edTitle">Новый человек</div><button class="ed-x" id="edX" type="button">×</button></div>
+    <div class="ed-body">
+      <label>Имя и фамилия *<input id="edName" maxlength="120" placeholder="Например: Иван Петров"></label>
+      <label>Девичья фамилия<input id="edSub" maxlength="120"></label>
+      <div class="ed-row">
+        <label>Год рождения<input id="edYr" inputmode="numeric" maxlength="5" placeholder="1965"></label>
+        <label>Год смерти<input id="edDied" inputmode="numeric" maxlength="5"></label>
+      </div>
+      <label>Город<input id="edCity" maxlength="80"></label>
+      <div class="ed-row">
+        <label>Отец<select id="edFid"></select></label>
+        <label>Мать<select id="edMid"></select></label>
+      </div>
+      <label>Поколение (0, 1, 2…)<input id="edGen" type="number" min="0" max="12" placeholder="пусто = определится само"></label>
+      <div class="ed-hint">Супруги связываются сами, когда у пары есть общий ребёнок. Если у человека нет родителей в дереве (например, супруг(а) без детей), укажите поколение — тогда он встанет на нужный уровень.</div>
+      <label>История / заметки<textarea id="edNotes" maxlength="3000"></textarea></label>
+      <div>
+        <div class="ed-lbl" style="margin-bottom:6px">Фотографии</div>
+        <div id="edPhotos"></div>
+        <div class="ed-prow">
+          <button class="ed-small" id="edAddPhoto" type="button">+ Ссылка на фото</button>
+          <button class="ed-small" id="edUpload" type="button" hidden>⬆ Загрузить файл</button>
+          <input type="file" id="edFile" accept="image/*" multiple hidden>
+        </div>
+      </div>
+    </div>
+    <div class="ed-foot">
+      <div class="ed-msg" id="edMsg"></div>
+      <button class="ed-btn" id="edCancel" type="button">Отмена</button>
+      <button class="ed-btn primary" id="edSave" type="button">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+// ═════════ НАСТРОЙКИ ═════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1FYrYjGHipuCmDaNZxAHqLDTb2_whlCKwSTaIx4jsKcB6nlA9mEFywKpfGVDYCkS5/exec';   // ← вставь сюда адрес веб-приложения Apps Script (заканчивается на /exec)
+const WORKER_URL = '';   // ← адрес Cloudflare Worker для загрузки фото (ключ imgbb хранится там, не на сайте)
+// ═════════════════════════════
+
+const KEYNAME = 'ft_edit_key';
+const $ = id => document.getElementById(id);
+const say = m => { if (typeof toast === 'function') toast(m); };
+let editingId = null;
+let busy = false;
+
+// ---------- кнопки ----------
+function mountButtons(){
+  const hr = document.querySelector('.hr');
+  if (hr && !$('edAdd')) {
+    const b = document.createElement('button');
+    b.className = 'btn'; b.id = 'edAdd'; b.type = 'button'; b.textContent = '+ Человек';
+    b.addEventListener('click', () => openForm(null));
+    hr.insertBefore(b, hr.firstChild);
+  }
+  if (WORKER_URL) $('edUpload').hidden = false;
+  const head = document.querySelector('#panel .phead');
+  if (head && !$('edPen')) {
+    const p = document.createElement('button');
+    p.className = 'ed-pen'; p.id = 'edPen'; p.type = 'button'; p.title = 'Изменить'; p.textContent = '✎';
+    p.addEventListener('click', () => { if (typeof selId !== 'undefined' && selId) openForm(selId); });
+    head.appendChild(p);
+  }
+}
+
+// ---------- форма ----------
+function personOptions(sel, current){
+  sel.innerHTML = '';
+  const none = document.createElement('option');
+  none.value = ''; none.textContent = '— нет в дереве —';
+  sel.appendChild(none);
+  [...people].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ru')).forEach(p=>{
+    if (p.id === editingId) return;
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.name + (p.yr ? ' (' + p.yr + ')' : '');
+    sel.appendChild(o);
+  });
+  sel.value = current || '';
+}
+
+function photoRow(url, cap){
+  const row = document.createElement('div');
+  row.className = 'ed-ph';
+  row.innerHTML = '<input class="u" placeholder="https://i.ibb.co/…" maxlength="500"><input class="c" placeholder="Подпись (необязательно)" maxlength="120"><button type="button" title="Убрать">×</button>';
+  row.querySelector('.u').value = url || '';
+  row.querySelector('.c').value = cap || '';
+  row.querySelector('button').addEventListener('click', () => row.remove());
+  $('edPhotos').appendChild(row);
+}
+
+function openForm(id){
+  editingId = id;
+  $('edMsg').textContent = ''; $('edMsg').className = 'ed-msg';
+  $('edTitle').textContent = id ? 'Изменить' : 'Новый человек';
+  const p = id ? people.find(x => x.id === id) : null;
+  $('edName').value  = p ? p.name  : '';
+  $('edSub').value   = p ? (p.sub || '')   : '';
+  $('edYr').value    = p ? (p.yr || '')    : '';
+  $('edDied').value  = p ? (p.died || '')  : '';
+  $('edCity').value  = p ? (p.city || '')  : '';
+  $('edGen').value   = p && p.genHint != null ? p.genHint : '';
+  $('edNotes').value = p ? (p.notes || '') : '';
+  personOptions($('edFid'), p ? p.fid : '');
+  personOptions($('edMid'), p ? p.mid : '');
+  $('edPhotos').innerHTML = '';
+  if (p && p.photo) p.photo.split(';;').forEach(s => { const a = s.split('|'); photoRow((a[0]||'').trim(), a.slice(1).join(' ').trim()); });
+  $('edBg').classList.add('show');
+  setTimeout(() => $('edName').focus(), 50);
+}
+function closeForm(){ $('edBg').classList.remove('show'); editingId = null; }
+
+// ---------- транслит для ID ----------
+const TR = {а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
+function makeId(name, extra){
+  let base = String(name).toLowerCase().split('').map(c => TR[c] !== undefined ? TR[c] : (/[a-z0-9]/.test(c) ? c : '')).join('').slice(0,14) || 'p';
+  const used = new Set(people.map(p => p.id));
+  let id = extra ? base + extra : base, i = 2;
+  while (used.has(id)) id = base + (extra || '') + (i++);
+  return id;
+}
+
+// ---------- сборка данных ----------
+function collect(){
+  const name = $('edName').value.trim();
+  if (!name) throw new Error('Введите имя');
+  const yr = $('edYr').value.trim(), died = $('edDied').value.trim();
+  if (yr && !/^(\?|~?\d{3,4})$/.test(yr)) throw new Error('Год рождения — число, например 1965 (или ?)');
+  if (died && !/^(\?|~?\d{3,4})$/.test(died)) throw new Error('Год смерти — число, например 2010 (или ?)');
+  let gen = $('edGen').value.trim();
+  const orig = editingId ? people.find(x => x.id === editingId) : null;
+  if (orig && gen === '' && orig.genHint == null) gen = undefined;   // не затираем «0» из таблицы
+  if (gen && !/^\d{1,2}$/.test(gen)) throw new Error('Поколение — число от 0 до 12');
+
+  const photos = [...$('edPhotos').querySelectorAll('.ed-ph')].map(r => {
+    const u = r.querySelector('.u').value.trim();
+    const c = r.querySelector('.c').value.trim().replace(/[|;<>"`]/g, ' ');
+    if (!u) return null;
+    if (!/^https:\/\/[^\s'"<>]+$/.test(u)) throw new Error('Ссылка на фото должна начинаться с https://');
+    return c ? u + '|' + c : u;
+  }).filter(Boolean).join(';;');
+
+  return {
+    id: editingId || makeId(name),
+    name, sub: $('edSub').value.trim(), yr, died,
+    city: $('edCity').value.trim(),
+    fid: $('edFid').value, mid: $('edMid').value,
+    gen, notes: $('edNotes').value.trim(), photo: photos
+  };
+}
+
+// ---------- отправка ----------
+async function send(body){
+  const r = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(body) });  // text/plain → без preflight
+  return await r.json();
+}
+
+function getKey(){
+  let k = localStorage.getItem(KEYNAME);
+  if (!k) { k = (prompt('Ключ редактирования (его знает только владелец дерева):') || '').trim(); }
+  return k;
+}
+
+// недавние правки держим в памяти: опубликованная таблица обновляется с задержкой
+const pending = [];
+function applyLocal(obj){
+  const o = Object.assign({}, obj);
+  if (obj.gen !== undefined) o.genHint = obj.gen === '' ? null : Number(obj.gen);
+  delete o.gen;
+  const i = people.findIndex(p => p.id === o.id);
+  if (i >= 0) people[i] = Object.assign(people[i], o); else people.push(o);
+  marriages = inferMarriages(people);
+}
+
+async function save(){
+  if (busy) return;
+  const msg = $('edMsg');
+  msg.className = 'ed-msg'; msg.textContent = '';
+  let person;
+  try { person = collect(); } catch (e) { msg.textContent = e.message; return; }
+  if (!SCRIPT_URL) { msg.textContent = 'Не настроено: вставьте адрес Apps Script в SCRIPT_URL.'; return; }
+  const key = getKey();
+  if (!key) return;
+
+  busy = true; $('edSave').disabled = true; msg.textContent = 'Сохраняю…';
+  try {
+    const action = editingId ? 'update' : 'add';
+    let res = await send({ action, key, person });
+    if (!res.ok && res.error === 'dup_id' && !editingId) {          // ID занят — пробуем другой
+      person.id = makeId(person.name, String(Math.floor(Math.random()*900+100)));
+      res = await send({ action, key, person });
+    }
+    if (!res.ok) {
+      if (res.error === 'bad_key') { localStorage.removeItem(KEYNAME); msg.textContent = 'Неверный ключ редактирования.'; }
+      else msg.textContent = res.error || 'Не удалось сохранить';
+      return;
+    }
+    localStorage.setItem(KEYNAME, key);
+    pending.push({ ts: Date.now(), obj: person });
+    applyLocal(person);
+    const id = person.id;
+    closeForm();
+    layout(); render();
+    selectP(id);
+    if (typeof goTo === 'function') goTo(id);
+    say('Сохранено ✦ Остальные увидят через несколько минут');
+  } catch (e) {
+    msg.textContent = 'Нет ответа от сервера. Проверьте таблицу — возможно, запись всё же сохранилась.';
+  } finally {
+    busy = false; $('edSave').disabled = false;
+  }
+}
+
+// после обновления из таблицы возвращаем свежие правки, которые таблица ещё не отдала
+if (typeof loadData === 'function') {
+  const _load = loadData;
+  loadData = async function(){
+    await _load.apply(this, arguments);
+    const fresh = pending.filter(p => Date.now() - p.ts < 10*60*1000);
+    if (fresh.length) {
+      fresh.forEach(p => applyLocal(p.obj));
+      layout(); render();
+    }
+  };
+}
+
+// ---------- загрузка файлов на imgbb ----------
+async function uploadFile(file){
+  if (file.size > 5*1024*1024) throw new Error('Файл больше 5 МБ');
+  const key = getKey();
+  if (!key) throw new Error('no key');
+  const fd = new FormData(); fd.append('image', file);
+  const r = await fetch(WORKER_URL, { method: 'POST', headers: { 'X-Edit-Key': key }, body: fd });
+  const j = await r.json();
+  if (!j.success) { if (j.error === 'bad_key') { try { localStorage.removeItem(KEYNAME); } catch (e) {} } throw new Error(j.error || 'upload failed'); }
+  try { localStorage.setItem(KEYNAME, key); } catch (e) {}
+  return j.data.url;
+}
+
+// ---------- события ----------
+$('edX').addEventListener('click', closeForm);
+$('edCancel').addEventListener('click', closeForm);
+$('edBg').addEventListener('mousedown', e => { if (e.target === $('edBg')) closeForm(); });
+$('edSave').addEventListener('click', save);
+$('edAddPhoto').addEventListener('click', () => photoRow('', ''));
+$('edUpload').addEventListener('click', () => $('edFile').click());
+$('edFile').addEventListener('change', async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  const msg = $('edMsg');
+  for (const f of files) {
+    try { msg.className = 'ed-msg'; msg.textContent = 'Загружаю ' + f.name + '…'; photoRow(await uploadFile(f), ''); msg.textContent = ''; }
+    catch (err) { msg.textContent = (err.message === 'no key' ? 'Нужен ключ редактирования' : 'Не удалось загрузить ' + f.name + (err.message ? ' (' + err.message + ')' : '')); }
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('edBg').classList.contains('show')) closeForm(); });
+
+mountButtons();
+})();
+</script>
+<!-- ═══════════════ конец блока редактора ═══════════════ -->
+
 </body>
 </html>
