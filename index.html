@@ -728,8 +728,8 @@ document.getElementById('wrap').addEventListener('click',e=>{
       <label>Имя и фамилия *<input id="edName" maxlength="120" placeholder="Например: Иван Петров"></label>
       <label>Девичья фамилия<input id="edSub" maxlength="120"></label>
       <div class="ed-row">
-        <label>Год рождения<input id="edYr" inputmode="numeric" maxlength="5" placeholder="1965"></label>
-        <label>Год смерти<input id="edDied" inputmode="numeric" maxlength="5"></label>
+        <label>Год рождения<input id="edYr" maxlength="10" placeholder="1965 или 18.08.1947"></label>
+        <label>Год смерти<input id="edDied" maxlength="10"></label>
       </div>
       <label>Город<input id="edCity" maxlength="80"></label>
       <div class="ed-row">
@@ -851,8 +851,8 @@ function collect(){
   const name = $('edName').value.trim();
   if (!name) throw new Error('Введите имя');
   const yr = $('edYr').value.trim(), died = $('edDied').value.trim();
-  if (yr && !/^(\?|~?\d{3,4})$/.test(yr)) throw new Error('Год рождения — число, например 1965 (или ?)');
-  if (died && !/^(\?|~?\d{3,4})$/.test(died)) throw new Error('Год смерти — число, например 2010 (или ?)');
+  if (yr && !/^[0-9.~?]{1,10}$/.test(yr)) throw new Error('Год рождения: цифры, например 1965 или 18.08.1947 (можно ?)');
+  if (died && !/^[0-9.~?]{1,10}$/.test(died)) throw new Error('Год смерти: цифры, например 2010 или 06.02.2007 (можно ?)');
   let gen = $('edGen').value.trim();
   const orig = editingId ? people.find(x => x.id === editingId) : null;
   if (orig && gen === '' && orig.genHint == null) gen = undefined;   // не затираем «0» из таблицы
