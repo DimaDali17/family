@@ -328,59 +328,93 @@ function layout(){
     coupleOf[p.fid]=p.mid;
     coupleOf[p.mid]=p.fid;
   });
-  // 3. Расстановка: единицы (пара или одиночка) + минимизация пересечений линий
+  // 3. Расстановка: единицы (пара или одиночка) + поиск порядка с минимумом пересечений линий
   const pmap={}; people.forEach(p=>pmap[p.id]=p);
   const parentsOf=id=>[pmap[id].fid,pmap[id].mid].filter(q=>q&&ids.has(q));
   const kidsOf={};
   people.forEach(p=>[p.fid,p.mid].forEach(q=>{ if(q&&ids.has(q))(kidsOf[q]=kidsOf[q]||[]).push(p.id); }));
-  const posX={};
-  const units=Array.from({length:maxD+1},()=>[]);
   const UW=u=>u.length*CW+(u.length-1)*HGAP;
-  const cx=id=>posX[id]+CW/2;
-  for(let d=0;d<=maxD;d++){
-    const used=new Set();
-    byGen[d].forEach(id=>{
-      if(used.has(id))return; used.add(id);
-      const u=[id], pt=coupleOf[id];
-      if(pt&&depth[pt]===d&&!used.has(pt)){used.add(pt);u.push(pt);}
-      units[d].push(u);
-    });
-    let cur=80;
-    units[d].forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=CW+HGAP;}));
-  }
   const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
-  function arrange(d,dir){
-    const list=units[d];
-    list.forEach(u=>{
-      // внутри пары: слева тот, чьи родители левее (кровный потомок стоит под своими родителями)
-      if(u.length===2){
-        const k=id=>{const pp=parentsOf(id).filter(q=>posX[q]!=null);return pp.length?avg(pp.map(cx)):null;};
-        const k0=k(u[0]),k1=k(u[1]);
-        if((k0==null&&k1!=null)?false:(k1==null&&k0!=null)?false:(k0!=null&&k1!=null&&k1<k0)) u.reverse();
-        else if(k0==null&&k1!=null) u.reverse();
-      }
-      const links=[];
-      u.forEach(id=>(dir==='up'?parentsOf(id):(kidsOf[id]||[])).forEach(q=>{ if(posX[q]!=null)links.push(cx(q)); }));
-      u.want=links.length?avg(links):posX[u[0]]+UW(u)/2;
-      // сверху вниз: первый в паре (кровный потомок) стоит строго под своими родителями, супруг(а) — рядом справа
-      if(dir==='up'&&u.length===2){
-        const pp=parentsOf(u[0]).filter(q=>posX[q]!=null);
-        if(pp.length) u.want=avg(pp.map(cx))-CW/2+UW(u)/2;
-      }
-    });
-    list.sort((a,b)=>a.want-b.want);
-    let cur=80;
-    list.forEach(u=>{
-      let x=Math.max(cur,u.want-UW(u)/2);
-      u.forEach(id=>{posX[id]=x;x+=CW+HGAP;});
-      cur=x;
-    });
+  const links=[];
+  people.forEach(c=>[c.fid,c.mid].forEach(q=>{ if(q&&ids.has(q))links.push([q,c.id]); }));
+  const Y=id=>depth[id]*(CH+VGAP);
+  function costOf(px){
+    const S=links.map(([q,c])=>[px[q]+CW/2,Y(q)+CH,px[c]+CW/2,Y(c),q,c]);
+    let len=0,cross=0;
+    S.forEach(s=>len+=Math.abs(s[0]-s[2]));
+    const ccw=(ax,ay,bx,by,cx,cy)=>(cy-ay)*(bx-ax)-(by-ay)*(cx-ax);
+    for(let i=0;i<S.length;i++)for(let j=i+1;j<S.length;j++){
+      const p=S[i],q=S[j];
+      if(p[4]===q[4]||p[5]===q[5]||p[4]===q[5]||p[5]===q[4])continue;
+      if(ccw(p[0],p[1],p[2],p[3],q[0],q[1])*ccw(p[0],p[1],p[2],p[3],q[2],q[3])<0 &&
+         ccw(q[0],q[1],q[2],q[3],p[0],p[1])*ccw(q[0],q[1],q[2],q[3],p[2],p[3])<0) cross++;
+    }
+    const xs=people.map(p=>px[p.id]);
+    return cross*2000+len+0.5*(Math.max(...xs)-Math.min(...xs));
   }
-  for(let it=0;it<6;it++){
+  function attempt(rng){
+    const posX={};
+    const cx=id=>posX[id]+CW/2;
+    const units=Array.from({length:maxD+1},()=>[]);
+    for(let d=0;d<=maxD;d++){
+      const used=new Set();
+      byGen[d].forEach(id=>{
+        if(used.has(id))return; used.add(id);
+        const u=[id], pt=coupleOf[id];
+        if(pt&&depth[pt]===d&&!used.has(pt)){used.add(pt);u.push(pt);}
+        units[d].push(u);
+      });
+      if(rng)for(let i=units[d].length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[units[d][i],units[d][j]]=[units[d][j],units[d][i]];}
+      let cur=80;
+      units[d].forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=CW+HGAP;}));
+    }
+    function arrange(d,dir){
+      const list=units[d];
+      list.forEach(u=>{
+        // внутри пары: слева тот, чьи родители левее
+        if(u.length===2){
+          const k=id=>{const pp=parentsOf(id);return pp.length?avg(pp.map(cx)):null;};
+          const k0=k(u[0]),k1=k(u[1]);
+          if(k0!=null&&k1!=null){ if(k1<k0)u.reverse(); }
+          else if(k0==null&&k1!=null)u.reverse();
+        }
+        const ln=[];
+        u.forEach(id=>(dir==='up'?parentsOf(id):(kidsOf[id]||[])).forEach(q=>ln.push(cx(q))));
+        u.want=ln.length?avg(ln):posX[u[0]]+UW(u)/2;
+        // сверху вниз: первый в паре стоит строго под своими родителями, супруг(а) рядом справа
+        if(dir==='up'&&u.length===2){
+          const pp=parentsOf(u[0]);
+          if(pp.length)u.want=avg(pp.map(cx))-CW/2+UW(u)/2;
+        }
+      });
+      list.sort((a,b)=>a.want-b.want);
+      let cur=80;
+      list.forEach(u=>{
+        let x=Math.max(cur,u.want-UW(u)/2);
+        u.forEach(id=>{posX[id]=x;x+=CW+HGAP;});
+        cur=x;
+      });
+    }
+    for(let it=0;it<6;it++){
+      for(let d=1;d<=maxD;d++)arrange(d,'up');
+      for(let d=maxD-1;d>=0;d--)arrange(d,'down');
+    }
     for(let d=1;d<=maxD;d++)arrange(d,'up');
-    for(let d=maxD-1;d>=0;d--)arrange(d,'down');
+    return {posX,cost:costOf(posX)};
   }
-  for(let d=1;d<=maxD;d++)arrange(d,'up');
+  // фиксированный генератор случайных чисел: раскладка стабильна при каждом открытии
+  const mkRng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  let best=attempt(null);
+  const tries=people.length>120?20:people.length>60?80:200;
+  for(let i=1;i<=tries;i++){ const r=attempt(mkRng(i*7919)); if(r.cost<best.cost)best=r; }
+  // зеркальная раскладка имеет ту же стоимость — выбираем ту, где порядок ближе к порядку строк в таблице
+  let posX=best.posX;
+  {
+    const xs=people.map(p=>posX[p.id]), lo=Math.min(...xs), hi=Math.max(...xs);
+    const mir={}; people.forEach(p=>mir[p.id]=lo+hi-posX[p.id]);
+    const corr=px=>{const m=avg(people.map(p=>px[p.id])),n=(people.length-1)/2;return people.reduce((s,p,i)=>s+(i-n)*(px[p.id]-m),0);};
+    if(corr(mir)>corr(posX))posX=mir;
+  }
   // 4. Применяем
   people.forEach(p=>{
     p.x=Math.round(posX[p.id]??80);
