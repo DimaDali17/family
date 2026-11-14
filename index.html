@@ -422,6 +422,27 @@ function layout(){
   let best=attempt(null);
   const tries=people.length>120?20:people.length>60?80:200;
   for(let i=1;i<=tries;i++){ const r=attempt(mkRng(i*7919)); if(r.cost<best.cost)best=r; }
+  // финальная «усадка»: если в ряду есть пустой промежуток, пробуем сдвинуть левую или правую часть ряда и оставляем сдвиг, если он снижает стоимость
+  {
+    const px=best.posX; let cb=costOf(px), improved=true, guard=0;
+    while(improved&&guard++<60){
+      improved=false;
+      for(let d=0;d<=maxD&&!improved;d++){
+        const row=byGen[d].slice().sort((a,b)=>px[a]-px[b]);
+        for(let i=0;i<row.length-1&&!improved;i++){
+          const gap=px[row[i+1]]-px[row[i]]-(CW+HGAP);
+          if(gap<=0.5)continue;
+          for(const side of [0,1]){
+            const grp=side?row.slice(0,i+1):row.slice(i+1), dx=side?gap:-gap;
+            grp.forEach(id=>px[id]+=dx);
+            const c=costOf(px);
+            if(c<cb-1e-6){cb=c;improved=true;break;}
+            grp.forEach(id=>px[id]-=dx);
+          }
+        }
+      }
+    }
+  }
   // зеркальная раскладка имеет ту же стоимость — выбираем ту, где порядок ближе к порядку строк в таблице
   let posX=best.posX;
   {
