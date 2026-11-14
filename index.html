@@ -50,8 +50,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 
 /* gen labels */
 .glabel{position:absolute;left:-60px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);pointer-events:none;white-space:nowrap;transform:translateY(50%);}
-.tline{height:0;border:none;border-top:1px dashed rgba(150,130,90,.25);background:none;padding:0;border-radius:0;transform:none;z-index:0;}
-.tlbl{font-size:12px;letter-spacing:.06em;transform:translateY(-50%);}
 
 .card{position:absolute;width:var(--cw);background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .18s,box-shadow .2s;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,.07);}
 .card:hover{border-color:var(--gold2);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.12);z-index:5;}
@@ -458,59 +456,6 @@ function layout(){
     p.x=Math.round(posX[p.id]??80);
     p.y=Math.round(depth[p.id]*(CH+VGAP));
   });
-  // 5. Временная шкала: вертикальная позиция карточки зависит от года рождения
-  {
-    const K=9, MINGAP=56, byId=pmap;
-    const yearOf=p=>{const m=String(p.yr||'').match(/\d{4}/);return m?+m[0]:null;};
-    const est={}; people.forEach(p=>{const y=yearOf(p);if(y!=null)est[p.id]=y;});
-    const known=new Set(Object.keys(est));
-    const sibs={}; sibFamilies.forEach(f=>f.forEach(id=>sibs[id]=f));
-    for(let it=0;it<12;it++){
-      let ch=false;
-      people.forEach(p=>{
-        if(est[p.id]!=null)return;
-        let v=null;
-        const pr=parentsOf(p.id).map(q=>est[q]).filter(x=>x!=null);
-        if(pr.length)v=Math.max(...pr)+28;
-        if(v==null){const kids=(kidsOf[p.id]||[]).map(q=>est[q]).filter(x=>x!=null); if(kids.length)v=Math.min(...kids)-28;}
-        if(v==null&&coupleOf[p.id]&&est[coupleOf[p.id]]!=null)v=est[coupleOf[p.id]];
-        if(v==null&&sibs[p.id]){const o=sibs[p.id].map(q=>est[q]).filter(x=>x!=null); if(o.length)v=Math.round(avg(o));}
-        if(v!=null){est[p.id]=v;ch=true;}
-      });
-      if(!ch)break;
-    }
-    // всё ещё неизвестные: по среднему году их поколения
-    const genAvg={};
-    for(let d=0;d<=maxD;d++){const a=byGen[d].map(id=>est[id]).filter(x=>x!=null); if(a.length)genAvg[d]=avg(a);}
-    people.forEach(p=>{ if(est[p.id]==null){ const d=depth[p.id]; est[p.id]=genAvg[d]!=null?genAvg[d]:(1880+d*27); }});
-    const ys=Object.values(est), y0=Math.floor(Math.min(...ys)/10)*10, TOP=100;
-    const cy={}; people.forEach(p=>cy[p.id]=(est[p.id]-y0)*K+TOP);
-    // пара стоит на одной высоте
-    people.forEach(p=>{const q=coupleOf[p.id]; if(q&&byId[q]&&p.id<q){const m=(cy[p.id]+cy[q])/2;cy[p.id]=cy[q]=m;}});
-    const order=[...people].sort((a,b)=>depth[a.id]-depth[b.id]);
-    const settle=()=>{
-      order.forEach(p=>{
-        const pr=parentsOf(p.id);
-        if(pr.length)cy[p.id]=Math.max(cy[p.id],Math.max(...pr.map(q=>cy[q]))+CH+MINGAP);
-        const q=coupleOf[p.id]; if(q&&byId[q]){const m=Math.max(cy[p.id],cy[q]);cy[p.id]=cy[q]=m;}
-      });
-    };
-    settle();
-    for(let it=0;it<30;it++){
-      let moved=false;
-      for(let i=0;i<people.length;i++)for(let j=i+1;j<people.length;j++){
-        const a=people[i],b=people[j];
-        if(Math.abs(a.x-b.x)>=CW+20)continue;
-        if(Math.abs(cy[a.id]-cy[b.id])>=CH+24)continue;
-        const lo=cy[a.id]<=cy[b.id]?b:a, hi=lo===a?b:a;
-        cy[lo.id]=cy[hi.id]+CH+24; moved=true;
-      }
-      settle();
-      if(!moved)break;
-    }
-    people.forEach(p=>{p.y=Math.round(cy[p.id]-CH/2);});
-    window._tl={y0,K,TOP,y1:Math.ceil(Math.max(...ys)/10)*10};
-  }
   window._byGen=byGen; window._maxGen=maxD; window._depth=depth;
 }
 // ── RENDER ─────────────────────────────────────────────────
@@ -519,19 +464,15 @@ function render(){
   canvas.querySelectorAll('.card,.glabel').forEach(e=>e.remove());
   drawSVG();
   people.forEach(p=>makeCard(p));
-  // Временная шкала слева и справа
-  if(window._tl){
-    const T=window._tl, xs=people.map(p=>p.x), L=Math.min(...xs)-110, R=Math.max(...xs)+CW+110;
-    for(let yv=T.y0;yv<=T.y1;yv+=10){
-      const top=(yv-T.y0)*T.K+T.TOP;
-      const ln=document.createElement('div'); ln.className='glabel tline';
-      ln.style.top=top+'px'; ln.style.left=(L+40)+'px'; ln.style.width=(R-L-80)+'px';
-      canvas.appendChild(ln);
-      [L,R-40].forEach(x=>{
-        const lbl=document.createElement('div'); lbl.className='glabel tlbl';
-        lbl.textContent=yv+'-е'; lbl.style.top=top+'px'; lbl.style.left=x+'px';
-        canvas.appendChild(lbl);
-      });
+  // Метки поколений
+  if(window._byGen){
+    for(let d=0;d<=window._maxGen;d++){
+      if(!window._byGen[d].length)continue;
+      const lbl=document.createElement('div');
+      lbl.className='glabel';
+      lbl.textContent='Поколение '+d;
+      lbl.style.top=(d*(CH+VGAP)+CH/2-10)+'px';
+      canvas.appendChild(lbl);
     }
   }
   applyT();
@@ -542,13 +483,13 @@ function centerView(){
   const wrap=document.getElementById('wrap');
   const W=wrap.clientWidth, H=wrap.clientHeight;
   const xs=people.map(p=>p.x), ys=people.map(p=>p.y);
-  const treeW=Math.max(...xs)+CW-Math.min(...xs)+220;
+  const treeW=Math.max(...xs)+CW-Math.min(...xs);
   const treeH=Math.max(...ys)+CH-Math.min(...ys);
   const minX=Math.min(...xs), minY=Math.min(...ys);
   const sx=(W-40)/treeW, sy=(H-80)/treeH;
   scale=Math.min(sx,sy,1);
   // Центрируем по горизонтали
-  panX=(W-treeW*scale)/2 - (minX-110)*scale;
+  panX=(W-treeW*scale)/2 - minX*scale;
   panY=30 - minY*scale;
   applyT();
 }
