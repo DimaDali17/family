@@ -342,6 +342,11 @@ function layout(){
   const links=[];
   people.forEach(c=>[c.fid,c.mid].forEach(q=>{ if(q&&ids.has(q))links.push([q,c.id]); }));
   const Y=id=>depth[id]*(CH+VGAP);
+  const sibFamilies=(()=>{
+    const m={};
+    people.forEach(p=>{ const f=p.fid&&ids.has(p.fid)?p.fid:'', mm=p.mid&&ids.has(p.mid)?p.mid:''; if(f||mm)(m[f+'|'+mm]=m[f+'|'+mm]||[]).push(p.id); });
+    return Object.values(m).filter(a=>a.length>1);
+  })();
   function costOf(px){
     const S=links.map(([q,c])=>[px[q]+CW/2,Y(q)+CH,px[c]+CW/2,Y(c),q,c]);
     let len=0,cross=0;
@@ -354,7 +359,13 @@ function layout(){
          ccw(q[0],q[1],q[2],q[3],p[0],p[1])*ccw(q[0],q[1],q[2],q[3],p[2],p[3])<0) cross++;
     }
     const xs=people.map(p=>px[p.id]);
-    return cross*2000+len+0.5*(Math.max(...xs)-Math.min(...xs));
+    // штраф за разрыв между родными братьями и сёстрами (они должны стоять рядом)
+    let sib=0;
+    sibFamilies.forEach(f=>{
+      const fx=f.map(id=>px[id]);
+      sib+=Math.max(0,Math.max(...fx)-Math.min(...fx)-(f.length-1)*(CW+HGAP));
+    });
+    return cross*2000+len+6*sib+0.5*(Math.max(...xs)-Math.min(...xs));
   }
   function attempt(rng){
     const posX={};
