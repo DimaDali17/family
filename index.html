@@ -57,9 +57,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 .card.dim{opacity:.14;}
 .ctop{display:flex;align-items:center;gap:10px;padding:12px 12px 6px;}
 .cav{position:relative;flex-shrink:0;}
-.card.nophoto{padding:9px 10px 8px;}
-.card.nophoto .cname{font-size:13px;}
-.card.nophoto .cmore{right:-1px;top:-1px;bottom:auto;border-radius:0 8px 0 8px;border:none;}
 .cmore{position:absolute;right:-6px;bottom:-2px;background:var(--gold);color:#fff;font-size:10px;font-weight:600;line-height:1;border-radius:10px;padding:3px 6px;border:2px solid #FAF7F0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
 .cphoto{width:68px;height:68px;object-fit:cover;border-radius:50%;border:2.5px solid var(--border2);flex-shrink:0;display:block;}
 .cph{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink3);border:2px solid var(--border);flex-shrink:0;}
@@ -199,9 +196,7 @@ const FB = [
 let people=[], marriages=[];
 let selId=null;
 let scale=0.8, panX=0, panY=0;
-const CW=164, CWS=118, CH=150, HGAP=44, VGAP=96;
-const PW=p=>(p&&p.w)||CW;
-const BH=p=>PW(p)<CW?66:CH;
+const CW=164, CH=150, HGAP=44, VGAP=96;
 
 // ── LOCK ───────────────────────────────────────────────────
 function unlock(){
@@ -311,7 +306,6 @@ function inferMarriages(pp){
 
 function layout(){
   if(!people.length)return;
-  people.forEach(p=>{p.w=gdrive(String(p.photo||'').split(';;')[0].split('|')[0].trim())?CW:CWS;});
   const ids=new Set(people.map(p=>p.id));
   // 1. Глубина
   const depth={};
@@ -345,7 +339,7 @@ function layout(){
   const parentsOf=id=>[pmap[id].fid,pmap[id].mid].filter(q=>q&&ids.has(q));
   const kidsOf={};
   people.forEach(p=>[p.fid,p.mid].forEach(q=>{ if(q&&ids.has(q))(kidsOf[q]=kidsOf[q]||[]).push(p.id); }));
-  const UW=u=>u.reduce((s,id)=>s+pmap[id].w,0)+(u.length-1)*HGAP;
+  const UW=u=>u.length*CW+(u.length-1)*HGAP;
   const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
   const links=[];
   people.forEach(c=>[c.fid,c.mid].forEach(q=>{ if(q&&ids.has(q))links.push([q,c.id]); }));
@@ -356,7 +350,7 @@ function layout(){
     return Object.values(m).filter(a=>a.length>1);
   })();
   function costOf(px){
-    const S=links.map(([q,c])=>[px[q]+pmap[q].w/2,Y(q)+CH,px[c]+pmap[c].w/2,Y(c),q,c]);
+    const S=links.map(([q,c])=>[px[q]+CW/2,Y(q)+CH,px[c]+CW/2,Y(c),q,c]);
     let len=0,cross=0;
     S.forEach(s=>len+=Math.abs(s[0]-s[2]));
     const ccw=(ax,ay,bx,by,cx,cy)=>(cy-ay)*(bx-ax)-(by-ay)*(cx-ax);
@@ -371,14 +365,13 @@ function layout(){
     let sib=0;
     sibFamilies.forEach(f=>{
       const fx=f.map(id=>px[id]);
-      const ws=f.map(id=>pmap[id].w), ideal=ws.reduce((a,b)=>a+b,0)*(1-1/f.length)+(f.length-1)*HGAP;
-      sib+=Math.max(0,Math.max(...fx)-Math.min(...fx)-ideal);
+      sib+=Math.max(0,Math.max(...fx)-Math.min(...fx)-(f.length-1)*(CW+HGAP));
     });
     return cross*2000+len+6*sib+0.5*(Math.max(...xs)-Math.min(...xs));
   }
   function attempt(rng){
     const posX={};
-    const cx=id=>posX[id]+pmap[id].w/2;
+    const cx=id=>posX[id]+CW/2;
     const units=Array.from({length:maxD+1},()=>[]);
     for(let d=0;d<=maxD;d++){
       const used=new Set();
@@ -390,7 +383,7 @@ function layout(){
       });
       if(rng)for(let i=units[d].length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[units[d][i],units[d][j]]=[units[d][j],units[d][i]];}
       let cur=80;
-      units[d].forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=pmap[id].w+HGAP;}));
+      units[d].forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=CW+HGAP;}));
     }
     function arrange(d,dir){
       const list=units[d];
@@ -408,14 +401,14 @@ function layout(){
         // сверху вниз: первый в паре стоит строго под своими родителями, супруг(а) рядом справа
         if(dir==='up'&&u.length===2){
           const pp=parentsOf(u[0]);
-          if(pp.length)u.want=avg(pp.map(cx))-pmap[u[0]].w/2+UW(u)/2;
+          if(pp.length)u.want=avg(pp.map(cx))-CW/2+UW(u)/2;
         }
       });
       list.sort((a,b)=>a.want-b.want);
       let cur=80;
       list.forEach(u=>{
         let x=Math.max(cur,u.want-UW(u)/2);
-        u.forEach(id=>{posX[id]=x;x+=pmap[id].w+HGAP;});
+        u.forEach(id=>{posX[id]=x;x+=CW+HGAP;});
         cur=x;
       });
     }
@@ -439,7 +432,7 @@ function layout(){
       for(let d=0;d<=maxD&&!improved;d++){
         const row=byGen[d].slice().sort((a,b)=>px[a]-px[b]);
         for(let i=0;i<row.length-1&&!improved;i++){
-          const gap=px[row[i+1]]-px[row[i]]-(pmap[row[i]].w+HGAP);
+          const gap=px[row[i+1]]-px[row[i]]-(CW+HGAP);
           if(gap<=0.5)continue;
           for(const side of [0,1]){
             const grp=side?row.slice(0,i+1):row.slice(i+1), dx=side?gap:-gap;
@@ -455,8 +448,8 @@ function layout(){
   // зеркальная раскладка имеет ту же стоимость — выбираем ту, где порядок ближе к порядку строк в таблице
   let posX=best.posX;
   {
-    const xs=people.map(p=>posX[p.id]), lo=Math.min(...xs), hi=Math.max(...people.map(p=>posX[p.id]+p.w));
-    const mir={}; people.forEach(p=>mir[p.id]=lo+hi-posX[p.id]-p.w);
+    const xs=people.map(p=>posX[p.id]), lo=Math.min(...xs), hi=Math.max(...xs);
+    const mir={}; people.forEach(p=>mir[p.id]=lo+hi-posX[p.id]);
     const corr=px=>{const m=avg(people.map(p=>px[p.id])),n=(people.length-1)/2;return people.reduce((s,p,i)=>s+(i-n)*(px[p.id]-m),0);};
     if(corr(mir)>corr(posX))posX=mir;
   }
@@ -492,7 +485,7 @@ function centerView(){
   const wrap=document.getElementById('wrap');
   const W=wrap.clientWidth, H=wrap.clientHeight;
   const xs=people.map(p=>p.x), ys=people.map(p=>p.y);
-  const treeW=Math.max(...people.map(p=>p.x+PW(p)))-Math.min(...xs);
+  const treeW=Math.max(...xs)+CW-Math.min(...xs);
   const treeH=Math.max(...ys)+CH-Math.min(...ys);
   const minX=Math.min(...xs), minY=Math.min(...ys);
   const sx=(W-40)/treeW, sy=(H-80)/treeH;
@@ -518,20 +511,9 @@ function makeCard(p){
   el.id='c-'+p.id;
   el.style.left=p.x+'px';
   el.style.top=p.y+'px';
-  el.style.width=PW(p)+'px';
   const iv=ini(p.name);
   const src=gdrive(p.photo);
   const yr=p.yr?(p.died?p.yr+'–'+p.died:'р. '+p.yr):'';
-  if(!src){
-    el.classList.add('nophoto');
-    el.innerHTML=`<div class="cname">${p.name}</div>`
-      +(p.sub?`<div class="csub">${p.sub}</div>`:'')
-      +(yr||p.city?`<div class="cyr">${[yr,p.city].filter(Boolean).join(' · ')}</div>`:'')
-      +(p.more>0?`<span class="cmore" title="Ещё ${p.more} родственников — не показаны">+${p.more}</span>`:'');
-    el.addEventListener('click',()=>selectP(p.id));
-    canvas.appendChild(el);
-    return;
-  }
   el.innerHTML=`<div class="ctop"><div class="cav">`
     +(src
       ?`<img class="cphoto" src="${src}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="cph" style="display:none">${iv}</div>`
@@ -559,8 +541,7 @@ function drawSVG(){
     const pa=pm[m.a],pb=pm[m.b];if(!pa||!pb)return;
     const key=[m.a,m.b].sort().join('=');if(drawn.has(key))return;drawn.add(key);
     const L=pa.x<pb.x?pa:pb,R=pa.x<pb.x?pb:pa;
-    const ly=(pa.w<CW||pb.w<CW)?38:CH*.38;
-    const x1=L.x+PW(L),y1=L.y+ly,x2=R.x,y2=R.y+ly;
+    const x1=L.x+CW,y1=L.y+CH*.38,x2=R.x,y2=R.y+CH*.38;
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     line.setAttribute('x1',x1);line.setAttribute('y1',y1);
     line.setAttribute('x2',x2);line.setAttribute('y2',y2);
@@ -582,15 +563,15 @@ function drawSVG(){
   people.forEach(p=>{
     const pf=p.fid&&pm[p.fid]?pm[p.fid]:null;
     const pm2=p.mid&&pm[p.mid]?pm[p.mid]:null;
-    const x2=p.x+PW(p)/2, y2=p.y;
+    const x2=p.x+CW/2, y2=p.y;
 
     if(pf&&pm2){
       // Точка слияния — середина по X между родителями, на полпути по Y
-      const jx=(pf.x+PW(pf)/2+pm2.x+PW(pm2)/2)/2;
-      const jy=(Math.max(pf.y+BH(pf),pm2.y+BH(pm2))+y2)/2;
+      const jx=(pf.x+CW/2+pm2.x+CW/2)/2;
+      const jy=(Math.max(pf.y,pm2.y)+CH+y2)/2;
 
       // От папы до точки слияния
-      const x1f=pf.x+PW(pf)/2, y1f=pf.y+BH(pf);
+      const x1f=pf.x+CW/2, y1f=pf.y+CH;
       const pathF=document.createElementNS('http://www.w3.org/2000/svg','path');
       pathF.setAttribute('d',`M${x1f},${y1f} C${x1f},${jy} ${jx},${jy} ${jx},${jy}`);
       pathF.setAttribute('fill','none');
@@ -599,7 +580,7 @@ function drawSVG(){
       svg.appendChild(pathF);
 
       // От мамы до точки слияния
-      const x1m=pm2.x+PW(pm2)/2, y1m=pm2.y+BH(pm2);
+      const x1m=pm2.x+CW/2, y1m=pm2.y+CH;
       const pathM=document.createElementNS('http://www.w3.org/2000/svg','path');
       pathM.setAttribute('d',`M${x1m},${y1m} C${x1m},${jy} ${jx},${jy} ${jx},${jy}`);
       pathM.setAttribute('fill','none');
@@ -618,7 +599,7 @@ function drawSVG(){
     } else {
       // Один родитель — обычная кривая
       const par=pf||pm2;if(!par)return;
-      const x1=par.x+PW(par)/2,y1=par.y+BH(par),my=(y1+y2)/2;
+      const x1=par.x+CW/2,y1=par.y+CH,my=(y1+y2)/2;
       const path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('d',`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`);
       path.setAttribute('fill','none');
@@ -703,7 +684,7 @@ function closePanel(){
 function goTo(id){
   const p=people.find(x=>x.id===id);if(!p)return;
   const w=document.getElementById('wrap');
-  panX=w.clientWidth/2-(p.x+PW(p)/2)*scale;
+  panX=w.clientWidth/2-(p.x+CW/2)*scale;
   panY=w.clientHeight/2-(p.y+CH/2)*scale;
   applyT();
 }
