@@ -378,71 +378,7 @@ function layout(){
       const ws=f.map(id=>pmap[id].w), ideal=ws.reduce((a,b)=>a+b,0)*(1-1/f.length)+(f.length-1)*HGAP;
       sib+=Math.max(0,Math.max(...fx)-Math.min(...fx)-ideal);
     });
-    return cross*2000+len+100*sib+0.5*(Math.max(...xs)-Math.min(...xs));
-  }
-  // родные братья и сёстры должны стоять подряд: чужие единицы, оказавшиеся между ними, выносим наружу
-  const sibSets=sibFamilies.map(f=>new Set(f));
-  const violations=list=>{
-    let v=0;
-    for(const f of sibSets){
-      const idx=[]; list.forEach((u,i)=>{ if(u.some(id=>f.has(id)))idx.push(i); });
-      if(idx.length<2)continue;
-      for(let i=idx[0]+1;i<idx[idx.length-1];i++) if(!list[i].some(id=>f.has(id)))v++;
-    }
-    return v;
-  };
-  function tighten(list){
-    for(let pass=0;pass<8;pass++){
-      let moved=false;
-      for(const f of sibSets){
-        const idx=[]; list.forEach((u,i)=>{ if(u.some(id=>f.has(id)))idx.push(i); });
-        if(idx.length<2)continue;
-        const lo=idx[0], hi=idx[idx.length-1];
-        for(let i=lo+1;i<hi;i++){
-          const u=list[i]; if(u.some(id=>f.has(id)))continue;
-          const v0=violations(list);
-          // пробуем все места для этой единицы, берём то, где меньше всего нарушений (при равенстве — ближе к желаемому)
-          const base=list.slice(); base.splice(i,1);
-          let bestV=v0, bestK=-1, bestD=Infinity;
-          for(let k=0;k<=base.length;k++){
-            if(k===i)continue;
-            const T=base.slice(); T.splice(k,0,u);
-            const v=violations(T);
-            const nb=[base[k-1],base[k]].filter(Boolean);
-            const d=nb.length?Math.min(...nb.map(x=>Math.abs(x.want-u.want))):1e9;
-            if(v<bestV||(v===bestV&&bestK>=0&&d<bestD)){bestV=v;bestK=k;bestD=d;}
-          }
-          if(bestK<0||bestV>=v0)continue;
-          base.splice(bestK,0,u);
-          list.length=0; base.forEach(x=>list.push(x));
-          moved=true; break;
-        }
-        if(moved)break;
-        // не вышло по одной: пробуем вынести весь «пробел» между соседними братьями/сёстрами целиком
-        for(let t=0;t+1<idx.length&&!moved;t++){
-          if(idx[t+1]-idx[t]<2)continue;
-          const run=list.slice(idx[t]+1,idx[t+1]);
-          const base=list.slice(0,idx[t]+1).concat(list.slice(idx[t+1]));
-          const v0=violations(list);
-          let bestV=v0,bestK=-1,bestD=Infinity;
-          const w=avg(run.map(x=>x.want));
-          for(let k=0;k<=base.length;k++){
-            if(k===idx[t]+1)continue;
-            const T=base.slice(); T.splice(k,0,...run);
-            const v=violations(T);
-            const nb=[base[k-1],base[k]].filter(Boolean);
-            const d=nb.length?Math.min(...nb.map(x=>Math.abs(x.want-w))):1e9;
-            if(v<bestV||(v===bestV&&bestK>=0&&d<bestD)){bestV=v;bestK=k;bestD=d;}
-          }
-          if(bestK<0||bestV>=v0)continue;
-          base.splice(bestK,0,...run);
-          list.length=0; base.forEach(x=>list.push(x));
-          moved=true;
-        }
-        if(moved)break;
-      }
-      if(!moved)break;
-    }
+    return cross*2000+len+6*sib+0.5*(Math.max(...xs)-Math.min(...xs));
   }
   function attempt(rng){
     const posX={};
@@ -475,18 +411,11 @@ function layout(){
         u.want=ln.length?avg(ln):posX[u[0]]+UW(u)/2;
         // сверху вниз: первый в паре стоит строго под своими родителями, супруг(а) рядом справа
         if(dir==='up'&&u.length===2){
-          // пара стоит посередине между родителями обоих (если родители есть у обоих), иначе под родителями того, у кого они есть
-          const c=[]; let off=0;
-          u.forEach(id=>{
-            const pp=parentsOf(id);
-            if(pp.length)c.push(avg(pp.map(cx))-(off+pmap[id].w/2)+UW(u)/2);
-            off+=pmap[id].w+HGAP;
-          });
-          if(c.length)u.want=avg(c);
+          const pp=parentsOf(u[0]);
+          if(pp.length)u.want=avg(pp.map(cx))-pmap[u[0]].w/2+UW(u)/2;
         }
       });
       list.sort((a,b)=>a.want-b.want);
-      tighten(list);
       let cur=80;
       list.forEach(u=>{
         let x=Math.max(cur,u.want-UW(u)/2);
