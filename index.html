@@ -378,7 +378,28 @@ function layout(){
       const ws=f.map(id=>pmap[id].w), ideal=ws.reduce((a,b)=>a+b,0)*(1-1/f.length)+(f.length-1)*HGAP;
       sib+=Math.max(0,Math.max(...fx)-Math.min(...fx)-ideal);
     });
-    return cross*2000+len+6*sib+0.5*(Math.max(...xs)-Math.min(...xs));
+    return cross*2000+len+100*sib+0.5*(Math.max(...xs)-Math.min(...xs));
+  }
+  // родные братья и сёстры должны стоять подряд: чужие единицы, оказавшиеся между ними, выносим наружу
+  const sibSets=sibFamilies.map(f=>new Set(f));
+  function tighten(list){
+    for(let pass=0;pass<6;pass++){
+      let moved=false;
+      for(const f of sibSets){
+        const idx=[]; list.forEach((u,i)=>{ if(u.some(id=>f.has(id)))idx.push(i); });
+        if(idx.length<2)continue;
+        const lo=idx[0], hi=idx[idx.length-1];
+        for(let i=lo+1;i<hi;i++){
+          const u=list[i]; if(u.some(id=>f.has(id)))continue;
+          const dl=Math.abs(u.want-list[lo].want), dr=Math.abs(u.want-list[hi].want);
+          list.splice(i,1);
+          if(dl<=dr)list.splice(lo,0,u); else list.splice(hi,0,u);
+          moved=true; break;
+        }
+        if(moved)break;
+      }
+      if(!moved)break;
+    }
   }
   function attempt(rng){
     const posX={};
@@ -416,6 +437,7 @@ function layout(){
         }
       });
       list.sort((a,b)=>a.want-b.want);
+      tighten(list);
       let cur=80;
       list.forEach(u=>{
         let x=Math.max(cur,u.want-UW(u)/2);
