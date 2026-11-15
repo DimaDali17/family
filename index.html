@@ -356,21 +356,13 @@ function layout(){
     return Object.values(m).filter(a=>a.length>1);
   })();
   function costOf(px){
-    // линия рисуется от точки слияния родителей (середина между отцом и матерью) к ребёнку
-    const S=[];
-    people.forEach(c=>{
-      const f=c.fid&&ids.has(c.fid)?c.fid:null, m=c.mid&&ids.has(c.mid)?c.mid:null;
-      if(!f&&!m)return;
-      const sx=f&&m?(px[f]+pmap[f].w/2+px[m]+pmap[m].w/2)/2:px[f||m]+pmap[f||m].w/2;
-      const sy=Math.max(f?Y(f):0,m?Y(m):0)+CH;
-      S.push([sx,sy,px[c.id]+pmap[c.id].w/2,Y(c.id),(f||'')+'|'+(m||''),c.id]);
-    });
+    const S=links.map(([q,c])=>[px[q]+pmap[q].w/2,Y(q)+CH,px[c]+pmap[c].w/2,Y(c),q,c]);
     let len=0,cross=0;
     S.forEach(s=>len+=Math.abs(s[0]-s[2]));
     const ccw=(ax,ay,bx,by,cx,cy)=>(cy-ay)*(bx-ax)-(by-ay)*(cx-ax);
     for(let i=0;i<S.length;i++)for(let j=i+1;j<S.length;j++){
       const p=S[i],q=S[j];
-      if(p[4]===q[4]||p[4].split('|').includes(q[5])||q[4].split('|').includes(p[5]))continue;
+      if(p[4]===q[4]||p[5]===q[5]||p[4]===q[5]||p[5]===q[4])continue;
       if(ccw(p[0],p[1],p[2],p[3],q[0],q[1])*ccw(p[0],p[1],p[2],p[3],q[2],q[3])<0 &&
          ccw(q[0],q[1],q[2],q[3],p[0],p[1])*ccw(q[0],q[1],q[2],q[3],p[2],p[3])<0) cross++;
     }
@@ -382,53 +374,10 @@ function layout(){
       const ws=f.map(id=>pmap[id].w), ideal=ws.reduce((a,b)=>a+b,0)*(1-1/f.length)+(f.length-1)*HGAP;
       sib+=Math.max(0,Math.max(...fx)-Math.min(...fx)-ideal);
     });
-    // самое молодое поколение — по центру внизу, кучкой
-    const bx=byGen[maxD].map(id=>px[id]+pmap[id].w/2);
-    const spread=Math.max(...bx)-Math.min(...bx);
-    const l0=Math.min(...xs), r0=Math.max(...people.map(p=>px[p.id]+p.w));
-    const off=Math.abs(avg(bx)-(l0+r0)/2);
-    return cross*2000+len+100*sib+0.5*(r0-l0)+4*spread+4*off;
+    return cross*2000+len+6*sib+0.5*(Math.max(...xs)-Math.min(...xs));
   }
-  // родные братья и сёстры должны стоять подряд: чужие единицы, оказавшиеся между ними, выносим наружу
-  const sibSets=sibFamilies.map(f=>new Set(f));
-  function tighten(list){
-    for(let pass=0;pass<6;pass++){
-      let moved=false;
-      for(const f of sibSets){
-        const idx=[]; list.forEach((u,i)=>{ if(u.some(id=>f.has(id)))idx.push(i); });
-        if(idx.length<2)continue;
-        const lo=idx[0], hi=idx[idx.length-1];
-        for(let i=lo+1;i<hi;i++){
-          const u=list[i]; if(u.some(id=>f.has(id)))continue;
-          const dl=Math.abs(u.want-list[lo].want), dr=Math.abs(u.want-list[hi].want);
-          list.splice(i,1);
-          if(dl<=dr)list.splice(lo,0,u); else list.splice(hi,0,u);
-          moved=true; break;
-        }
-        if(moved)break;
-      }
-      if(!moved)break;
-    }
-  }
-  // порядок обхода «родня рядом»: поиск в глубину по связям, со случайным выбором соседей
-  function dfsRank(rng){
-    const rank={}; let c=0;
-    const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
-    const nb=id=>[...parentsOf(id),...(kidsOf[id]||[]),...(coupleOf[id]&&ids.has(coupleOf[id])?[coupleOf[id]]:[])];
-    shuf(people.map(p=>p.id)).forEach(s0=>{
-      if(rank[s0]!=null)return;
-      const st=[s0];
-      while(st.length){
-        const id=st.pop(); if(rank[id]!=null)continue;
-        rank[id]=c++;
-        const n=shuf(nb(id).filter(q=>rank[q]==null)); st.push(...n);
-      }
-    });
-    return rank;
-  }
-  function attempt(rng,useDfs){
+  function attempt(rng){
     const posX={};
-    const rank=useDfs&&rng?dfsRank(rng):null;
     const cx=id=>posX[id]+pmap[id].w/2;
     const units=Array.from({length:maxD+1},()=>[]);
     for(let d=0;d<=maxD;d++){
@@ -439,8 +388,7 @@ function layout(){
         if(pt&&depth[pt]===d&&!used.has(pt)){used.add(pt);u.push(pt);}
         units[d].push(u);
       });
-      if(rng&&!rank)for(let i=units[d].length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[units[d][i],units[d][j]]=[units[d][j],units[d][i]];}
-      if(rank)units[d].sort((a,b)=>Math.min(...a.map(i=>rank[i]))-Math.min(...b.map(i=>rank[i])));
+      if(rng)for(let i=units[d].length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[units[d][i],units[d][j]]=[units[d][j],units[d][i]];}
       let cur=80;
       units[d].forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=pmap[id].w+HGAP;}));
     }
@@ -464,7 +412,6 @@ function layout(){
         }
       });
       list.sort((a,b)=>a.want-b.want);
-      tighten(list);
       let cur=80;
       list.forEach(u=>{
         let x=Math.max(cur,u.want-UW(u)/2);
@@ -477,75 +424,13 @@ function layout(){
       for(let d=maxD-1;d>=0;d--)arrange(d,'down');
     }
     for(let d=1;d<=maxD;d++)arrange(d,'up');
-    return {posX,cost:costOf(posX),units};
+    return {posX,cost:costOf(posX)};
   }
   // фиксированный генератор случайных чисел: раскладка стабильна при каждом открытии
   const mkRng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
   let best=attempt(null);
-  const tries=people.length>250?30:people.length>150?150:people.length>100?200:300;
-  for(let i=1;i<=tries;i++){ const r=attempt(mkRng(i*7919),i%2===0); if(r.cost<best.cost)best=r; }
-  // расстановка при фиксированном порядке единиц в рядах (без пересортировки)
-  function settle(order){
-    const posX={};
-    const cx=id=>posX[id]+pmap[id].w/2;
-    const units=order.map(r=>r.map(u=>u.slice()));
-    units.forEach(r=>{let cur=80;r.forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=pmap[id].w+HGAP;}));});
-    function place(d,dir){
-      const list=units[d];
-      list.forEach(u=>{
-        if(u.length===2){
-          const k=id=>{const pp=parentsOf(id);return pp.length?avg(pp.map(cx)):null;};
-          const k0=k(u[0]),k1=k(u[1]);
-          if(k0!=null&&k1!=null){ if(k1<k0)u.reverse(); }
-          else if(k0==null&&k1!=null)u.reverse();
-        }
-        const ln=[];
-        u.forEach(id=>(dir==='up'?parentsOf(id):(kidsOf[id]||[])).forEach(q=>ln.push(cx(q))));
-        u.want=ln.length?avg(ln):posX[u[0]]+UW(u)/2;
-        if(dir==='up'&&u.length===2){
-          const pp=parentsOf(u[0]);
-          if(pp.length)u.want=avg(pp.map(cx))-pmap[u[0]].w/2+UW(u)/2;
-        }
-      });
-      let cur=80;
-      list.forEach(u=>{
-        const x0=Math.max(cur,u.want-UW(u)/2); let x=x0;
-        u.forEach(id=>{posX[id]=x;x+=pmap[id].w+HGAP;});
-        cur=x;
-      });
-    }
-    for(let it=0;it<4;it++){
-      for(let d=1;d<=maxD;d++)place(d,'up');
-      for(let d=maxD-1;d>=0;d--)place(d,'down');
-    }
-    for(let d=1;d<=maxD;d++)place(d,'up');
-    return {posX,cost:costOf(posX),units};
-  }
-  // локальный поиск: двигаем отдельные единицы внутри ряда, пока стоимость падает (число проверок ограничено — раскладка стабильна)
-  {
-    let cur=settle(best.units.map(r=>r.map(u=>u.slice())));
-    if(cur.cost>best.cost)cur=best;
-    const rng=mkRng(424242);
-    const maxEv=people.length>150?300:people.length>100?800:1500;
-    let ev=0, improved=true;
-    while(improved&&ev<maxEv){
-      improved=false;
-      const rows=[...Array(maxD+1).keys()].filter(d=>cur.units[d].length>1).sort(()=>rng()-.5);
-      for(const d of rows){
-        const n=cur.units[d].length;
-        for(let i=0;i<n&&ev<maxEv;i++){
-          for(let j=0;j<n&&ev<maxEv;j++){
-            if(i===j)continue;
-            const ord=cur.units.map(r=>r.slice());
-            const [m]=ord[d].splice(i,1); ord[d].splice(j,0,m);
-            const r=settle(ord); ev++;
-            if(r.cost<cur.cost-1e-6){cur=r;improved=true;break;}
-          }
-        }
-      }
-    }
-    if(cur.cost<best.cost)best=cur;
-  }
+  const tries=people.length>120?20:people.length>60?80:200;
+  for(let i=1;i<=tries;i++){ const r=attempt(mkRng(i*7919)); if(r.cost<best.cost)best=r; }
   // финальная «усадка»: если в ряду есть пустой промежуток, пробуем сдвинуть левую или правую часть ряда и оставляем сдвиг, если он снижает стоимость
   {
     const px=best.posX; let cb=costOf(px), improved=true, guard=0;
