@@ -382,8 +382,17 @@ function layout(){
   }
   // родные братья и сёстры должны стоять подряд: чужие единицы, оказавшиеся между ними, выносим наружу
   const sibSets=sibFamilies.map(f=>new Set(f));
+  const violations=list=>{
+    let v=0;
+    for(const f of sibSets){
+      const idx=[]; list.forEach((u,i)=>{ if(u.some(id=>f.has(id)))idx.push(i); });
+      if(idx.length<2)continue;
+      for(let i=idx[0]+1;i<idx[idx.length-1];i++) if(!list[i].some(id=>f.has(id)))v++;
+    }
+    return v;
+  };
   function tighten(list){
-    for(let pass=0;pass<6;pass++){
+    for(let pass=0;pass<8;pass++){
       let moved=false;
       for(const f of sibSets){
         const idx=[]; list.forEach((u,i)=>{ if(u.some(id=>f.has(id)))idx.push(i); });
@@ -391,9 +400,21 @@ function layout(){
         const lo=idx[0], hi=idx[idx.length-1];
         for(let i=lo+1;i<hi;i++){
           const u=list[i]; if(u.some(id=>f.has(id)))continue;
-          const dl=Math.abs(u.want-list[lo].want), dr=Math.abs(u.want-list[hi].want);
-          list.splice(i,1);
-          if(dl<=dr)list.splice(lo,0,u); else list.splice(hi,0,u);
+          const v0=violations(list);
+          // пробуем все места для этой единицы, берём то, где меньше всего нарушений (при равенстве — ближе к желаемому)
+          const base=list.slice(); base.splice(i,1);
+          let bestV=v0, bestK=-1, bestD=Infinity;
+          for(let k=0;k<=base.length;k++){
+            if(k===i)continue;
+            const T=base.slice(); T.splice(k,0,u);
+            const v=violations(T);
+            const nb=[base[k-1],base[k]].filter(Boolean);
+            const d=nb.length?Math.min(...nb.map(x=>Math.abs(x.want-u.want))):1e9;
+            if(v<bestV||(v===bestV&&bestK>=0&&d<bestD)){bestV=v;bestK=k;bestD=d;}
+          }
+          if(bestK<0||bestV>=v0)continue;
+          base.splice(bestK,0,u);
+          list.length=0; base.forEach(x=>list.push(x));
           moved=true; break;
         }
         if(moved)break;
