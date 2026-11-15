@@ -57,7 +57,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 .card.dim{opacity:.14;}
 .ctop{display:flex;align-items:center;gap:10px;padding:12px 12px 6px;}
 .cav{position:relative;flex-shrink:0;}
-.card.nophoto{box-sizing:border-box;height:98px;padding:6px 7px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;overflow:hidden;}
+.card:not(.nophoto){display:flex;flex-direction:column;justify-content:center;}
+.card.nophoto{box-sizing:border-box;padding:6px 7px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;overflow:hidden;}
 .card.nophoto .cname{font-size:12px;line-height:1.2;}
 .card.nophoto .csub{font-size:9px;}
 .card.nophoto .cyr{font-size:9px;}
@@ -201,7 +202,7 @@ const FB = [
 let people=[], marriages=[];
 let selId=null;
 let scale=0.8, panX=0, panY=0;
-const CW=164, CH=150, HGAP=44, VGAP=96, SQ=98;
+const CW=164, CH=150, HGAP=44, VGAP=96; let SQ=98;
 const hasPhoto=p=>!!gdrive(String(p.photo||'').split(';;')[0].split('|')[0].trim());
 const VW=p=>hasPhoto(p)?CW:SQ;
 const PW=p=>(p&&p.w)||CW;
@@ -471,6 +472,17 @@ function layout(){
   window._byGen=byGen; window._maxGen=maxD; window._depth=depth;
 }
 // ── RENDER ─────────────────────────────────────────────────
+// высота карточек с фото зависит от шрифта и текста: делаем все карточки одной высоты, а квадраты — со стороной, равной этой высоте
+function fitSquares(){
+  const cards=[...document.querySelectorAll('.card')];
+  cards.forEach(c=>{c.style.minHeight='';});
+  let h=0; cards.filter(c=>!c.classList.contains('nophoto')).forEach(c=>{h=Math.max(h,c.offsetHeight);});
+  if(!h)return false;
+  if(Math.abs(h-SQ)>1){ SQ=h; return true; }
+  cards.forEach(c=>{c.style.minHeight=h+'px';});
+  return false;
+}
+let _fitting=false;
 function render(){
   const canvas=document.getElementById('canvas');
   canvas.querySelectorAll('.card,.glabel').forEach(e=>e.remove());
@@ -488,7 +500,14 @@ function render(){
     }
   }
   applyT();
+  if(!_fitting){
+    _fitting=true;
+    const changed=fitSquares();
+    if(changed){ layout(); render(); fitSquares(); }
+    _fitting=false;
+  }
 }
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{ if(typeof people!=='undefined'&&people.length&&typeof layout==='function'){ layout(); render(); } });
 
 function centerView(){
   if(!people.length)return;
@@ -526,7 +545,7 @@ function makeCard(p){
   const yr=p.yr?(p.died?p.yr+'–'+p.died:'р. '+p.yr):'';
   if(!src){
     el.classList.add('nophoto');
-    el.style.width=SQ+'px';
+    el.style.width=SQ+'px'; el.style.height=SQ+'px';
     el.innerHTML=`<div class="cname">${p.name}</div>`
       +(p.sub?`<div class="csub">${p.sub}</div>`:'')
       +(yr||p.city?`<div class="cyr">${[yr,p.city].filter(Boolean).join(' · ')}</div>`:'')
@@ -556,27 +575,6 @@ function drawSVG(){
   const svg=document.getElementById('svgl');svg.innerHTML='';
   const pm={};people.forEach(p=>pm[p.id]=p);
   const drawn=new Set();
-
-  // Линии супругов
-  marriages.forEach(m=>{
-    const pa=pm[m.a],pb=pm[m.b];if(!pa||!pb)return;
-    const key=[m.a,m.b].sort().join('=');if(drawn.has(key))return;drawn.add(key);
-    const L=pa.x<pb.x?pa:pb,R=pa.x<pb.x?pb:pa;
-    const x1=L.x+PW(L),y1=L.y+CH*.38,x2=R.x,y2=R.y+CH*.38;
-    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1',x1);line.setAttribute('y1',y1);
-    line.setAttribute('x2',x2);line.setAttribute('y2',y2);
-    line.setAttribute('stroke','rgba(139,105,20,0.42)');
-    line.setAttribute('stroke-width','1.8');
-    line.setAttribute('stroke-dasharray','6,4');
-    svg.appendChild(line);
-    const mx=(x1+x2)/2,my2=(y1+y2)/2;
-    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('x',mx);t.setAttribute('y',my2+5);
-    t.setAttribute('text-anchor','middle');t.setAttribute('font-size','12');
-    t.setAttribute('fill','rgba(139,105,20,0.45)');t.textContent='♥';
-    svg.appendChild(t);
-  });
 
   // Линии родитель→ребёнок
   // Если у ребёнка два родителя — линии от обоих сходятся в точку jx,jy и оттуда одна кривая к ребёнку
