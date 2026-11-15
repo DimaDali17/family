@@ -57,8 +57,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);}
 .card.dim{opacity:.14;}
 .ctop{display:flex;align-items:center;gap:10px;padding:12px 12px 6px;}
 .cav{position:relative;flex-shrink:0;}
-.card.nophoto{padding:9px 10px 8px;}
-.card.nophoto .cname{font-size:13px;}
+.card.nophoto{box-sizing:border-box;height:98px;padding:6px 7px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;overflow:hidden;}
+.card.nophoto .cname{font-size:12px;line-height:1.2;}
+.card.nophoto .csub{font-size:9px;}
+.card.nophoto .cyr{font-size:9px;}
 .card.nophoto .cmore{right:-1px;top:-1px;bottom:auto;border-radius:0 8px 0 8px;border:none;}
 .cmore{position:absolute;right:-6px;bottom:-2px;background:var(--gold);color:#fff;font-size:10px;font-weight:600;line-height:1;border-radius:10px;padding:3px 6px;border:2px solid #FAF7F0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
 .cphoto{width:68px;height:68px;object-fit:cover;border-radius:50%;border:2.5px solid var(--border2);flex-shrink:0;display:block;}
@@ -199,9 +201,9 @@ const FB = [
 let people=[], marriages=[];
 let selId=null;
 let scale=0.8, panX=0, panY=0;
-const CW=164, CWS=118, CH=150, HGAP=44, VGAP=96;
+const CW=164, CWS=98, CH=150, HGAP=44, VGAP=96;
 const PW=p=>(p&&p.w)||CW;
-const BH=p=>PW(p)<CW?66:CH;
+const BH=p=>CH;
 
 // ── LOCK ───────────────────────────────────────────────────
 function unlock(){
@@ -389,6 +391,57 @@ function layout(){
     const off=Math.abs(avg(bx)-(l0+r0)/2);
     return cross*2000+len+100*sib+0.5*(r0-l0)+4*spread+4*off;
   }
+  // размещение ряда в заданном порядке: ближайшие к желаемым позициям (изотоническая регрессия), без «каскада» вправо
+  function packRow(list,posX){
+    const n=list.length; if(!n)return;
+    const off=[]; let o=0;
+    list.forEach(u=>{off.push(o);o+=UW(u)+HGAP;});
+    const z=list.map((u,i)=>u.want-UW(u)/2-off[i]);
+    const blocks=[]; // {sum,cnt}
+    z.forEach(v=>{
+      blocks.push({sum:v,cnt:1});
+      while(blocks.length>1){
+        const b=blocks[blocks.length-1], a=blocks[blocks.length-2];
+        if(a.sum/a.cnt<=b.sum/b.cnt)break;
+        blocks.pop(); a.sum+=b.sum; a.cnt+=b.cnt;
+      }
+    });
+    const zz=[]; blocks.forEach(b=>{for(let k=0;k<b.cnt;k++)zz.push(b.sum/b.cnt);});
+    const shift=Math.max(0,80-(zz[0]+off[0]));
+    list.forEach((u,i)=>{let x=zz[i]+off[i]+shift;u.forEach(id=>{posX[id]=x;x+=pmap[id].w+HGAP;});});
+  }
+  const sibFamOf={}; sibFamilies.forEach(f=>f.forEach(id=>sibFamOf[id]=f));
+  // порядок и желаемое положение единицы: супруг, чьи родные братья/сёстры левее, стоит слева; пара стоит под родителями обоих
+  function orderAndWant(u,dir,cx,posX){
+    if(u.length===2){
+      const ux=avg(u.map(cx));
+      const L=id=>{ const f=sibFamOf[id]; if(!f)return null; const o=f.filter(q=>q!==id&&q!==u[0]&&q!==u[1]); return o.length?avg(o.map(cx))-ux:null; };
+      const l0=L(u[0]), l1=L(u[1]);
+      if(l0!=null&&l1!=null){ if(l0>l1)u.reverse(); }
+      else if(l0!=null){ if(l0>0)u.reverse(); }
+      else if(l1!=null){ if(l1<0)u.reverse(); }
+      else {
+        const k=id=>{const pp=parentsOf(id);return pp.length?avg(pp.map(cx)):null;};
+        const k0=k(u[0]),k1=k(u[1]);
+        if(k0!=null&&k1!=null){ if(k1<k0)u.reverse(); }
+        else if(k0==null&&k1!=null)u.reverse();
+      }
+    }
+    const ln=[];
+    u.forEach(id=>(dir==='up'?parentsOf(id):(kidsOf[id]||[])).forEach(q=>ln.push(cx(q))));
+    let want=ln.length?avg(ln):posX[u[0]]+UW(u)/2;
+    if(dir==='up'){
+      // каждый член пары с родителями стремится встать строго под ними; берём среднее
+      const c=[]; let off=0;
+      u.forEach(id=>{
+        const pp=parentsOf(id);
+        if(pp.length)c.push(avg(pp.map(cx))-(off+pmap[id].w/2)+UW(u)/2);
+        off+=pmap[id].w+HGAP;
+      });
+      if(c.length)want=avg(c);
+    }
+    u.want=want;
+  }
   // родные братья и сёстры должны стоять подряд: чужие единицы, оказавшиеся между ними, выносим наружу
   const sibSets=sibFamilies.map(f=>new Set(f));
   function tighten(list){
@@ -409,6 +462,20 @@ function layout(){
       }
       if(!moved)break;
     }
+  }
+  // в паре тот, кто из семьи братьев/сестёр, встаёт ближе к своим родным
+  function orientPairs(list){
+    list.forEach(u=>{
+      if(u.length!==2)return;
+      const fams=sibSets.filter(f=>u.some(id=>f.has(id)));
+      if(fams.length!==1)return;
+      const f=fams[0], m=u.find(id=>f.has(id)); if(f.has(u[0])&&f.has(u[1]))return;
+      const others=list.filter(v=>v!==u&&v.some(id=>f.has(id)));
+      if(!others.length)return;
+      const right=avg(others.map(v=>v.want))>u.want;
+      const want=right?[u.find(id=>id!==m),m]:[m,u.find(id=>id!==m)];
+      if(u[0]!==want[0]){u.reverse();}
+    });
   }
   // порядок обхода «родня рядом»: поиск в глубину по связям, со случайным выбором соседей
   function dfsRank(rng){
@@ -446,31 +513,10 @@ function layout(){
     }
     function arrange(d,dir){
       const list=units[d];
-      list.forEach(u=>{
-        // внутри пары: слева тот, чьи родители левее
-        if(u.length===2){
-          const k=id=>{const pp=parentsOf(id);return pp.length?avg(pp.map(cx)):null;};
-          const k0=k(u[0]),k1=k(u[1]);
-          if(k0!=null&&k1!=null){ if(k1<k0)u.reverse(); }
-          else if(k0==null&&k1!=null)u.reverse();
-        }
-        const ln=[];
-        u.forEach(id=>(dir==='up'?parentsOf(id):(kidsOf[id]||[])).forEach(q=>ln.push(cx(q))));
-        u.want=ln.length?avg(ln):posX[u[0]]+UW(u)/2;
-        // сверху вниз: первый в паре стоит строго под своими родителями, супруг(а) рядом справа
-        if(dir==='up'&&u.length===2){
-          const pp=parentsOf(u[0]);
-          if(pp.length)u.want=avg(pp.map(cx))-pmap[u[0]].w/2+UW(u)/2;
-        }
-      });
+      list.forEach(u=>orderAndWant(u,dir,cx,posX));
       list.sort((a,b)=>a.want-b.want);
       tighten(list);
-      let cur=80;
-      list.forEach(u=>{
-        let x=Math.max(cur,u.want-UW(u)/2);
-        u.forEach(id=>{posX[id]=x;x+=pmap[id].w+HGAP;});
-        cur=x;
-      });
+      packRow(list,posX);
     }
     for(let it=0;it<6;it++){
       for(let d=1;d<=maxD;d++)arrange(d,'up');
@@ -483,7 +529,8 @@ function layout(){
   const mkRng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
   let best=attempt(null);
   const tries=people.length>250?30:people.length>150?150:people.length>100?200:300;
-  for(let i=1;i<=tries;i++){ const r=attempt(mkRng(i*7919),i%2===0); if(r.cost<best.cost)best=r; }
+  const pool=[best];
+  for(let i=1;i<=tries;i++){ const r=attempt(mkRng(i*7919),i%2===0); pool.push(r); if(r.cost<best.cost)best=r; }
   // расстановка при фиксированном порядке единиц в рядах (без пересортировки)
   function settle(order){
     const posX={};
@@ -492,27 +539,8 @@ function layout(){
     units.forEach(r=>{let cur=80;r.forEach(u=>u.forEach(id=>{posX[id]=cur;cur+=pmap[id].w+HGAP;}));});
     function place(d,dir){
       const list=units[d];
-      list.forEach(u=>{
-        if(u.length===2){
-          const k=id=>{const pp=parentsOf(id);return pp.length?avg(pp.map(cx)):null;};
-          const k0=k(u[0]),k1=k(u[1]);
-          if(k0!=null&&k1!=null){ if(k1<k0)u.reverse(); }
-          else if(k0==null&&k1!=null)u.reverse();
-        }
-        const ln=[];
-        u.forEach(id=>(dir==='up'?parentsOf(id):(kidsOf[id]||[])).forEach(q=>ln.push(cx(q))));
-        u.want=ln.length?avg(ln):posX[u[0]]+UW(u)/2;
-        if(dir==='up'&&u.length===2){
-          const pp=parentsOf(u[0]);
-          if(pp.length)u.want=avg(pp.map(cx))-pmap[u[0]].w/2+UW(u)/2;
-        }
-      });
-      let cur=80;
-      list.forEach(u=>{
-        const x0=Math.max(cur,u.want-UW(u)/2); let x=x0;
-        u.forEach(id=>{posX[id]=x;x+=pmap[id].w+HGAP;});
-        cur=x;
-      });
+      list.forEach(u=>orderAndWant(u,dir,cx,posX));
+      packRow(list,posX);
     }
     for(let it=0;it<4;it++){
       for(let d=1;d<=maxD;d++)place(d,'up');
@@ -522,11 +550,10 @@ function layout(){
     return {posX,cost:costOf(posX),units};
   }
   // локальный поиск: двигаем отдельные единицы внутри ряда, пока стоимость падает (число проверок ограничено — раскладка стабильна)
-  {
-    let cur=settle(best.units.map(r=>r.map(u=>u.slice())));
-    if(cur.cost>best.cost)cur=best;
+  function localSearch(start,maxEv){
+    let cur=settle(start.units.map(r=>r.map(u=>u.slice())));
+    if(cur.cost>start.cost)cur=start;
     const rng=mkRng(424242);
-    const maxEv=people.length>150?300:people.length>100?800:1500;
     let ev=0, improved=true;
     while(improved&&ev<maxEv){
       improved=false;
@@ -544,7 +571,14 @@ function layout(){
         }
       }
     }
-    if(cur.cost<best.cost)best=cur;
+    return cur;
+  }
+  {
+    // берём несколько лучших разных стартов
+    const seen=new Set(), starts=[];
+    pool.sort((a,b)=>a.cost-b.cost).forEach(r=>{const k=Math.round(r.cost); if(!seen.has(k)&&starts.length<6){seen.add(k);starts.push(r);}});
+    const per=Math.round((people.length>150?300:people.length>100?800:1500)/starts.length);
+    starts.forEach(st=>{ const r=localSearch(st,per); if(r.cost<best.cost)best=r; });
   }
   // финальная «усадка»: если в ряду есть пустой промежуток, пробуем сдвинуть левую или правую часть ряда и оставляем сдвиг, если он снижает стоимость
   {
@@ -674,7 +708,7 @@ function drawSVG(){
     const pa=pm[m.a],pb=pm[m.b];if(!pa||!pb)return;
     const key=[m.a,m.b].sort().join('=');if(drawn.has(key))return;drawn.add(key);
     const L=pa.x<pb.x?pa:pb,R=pa.x<pb.x?pb:pa;
-    const ly=(pa.w<CW||pb.w<CW)?38:CH*.38;
+    const ly=CH*.38;
     const x1=L.x+PW(L),y1=L.y+ly,x2=R.x,y2=R.y+ly;
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     line.setAttribute('x1',x1);line.setAttribute('y1',y1);
